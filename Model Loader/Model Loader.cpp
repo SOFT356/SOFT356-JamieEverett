@@ -24,7 +24,7 @@ bool loadObj(
 	std::vector<glm::vec3>& normals
 );
 
-bool displayObj(
+bool display(
 	std::vector<glm::vec3>& vertices,
 	std::vector<glm::vec2>& uvs,
 	std::vector<glm::vec3>& normals
@@ -46,12 +46,11 @@ int main()
 	std::smatch fileExtension;
 	std::regex_search(modelPath, fileExtension, pattern);
 	
-	if (fileExtension[0] == ".obj") {
-		std::vector<glm::vec3> vertices, normals;
-		std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> vertices, normals;
+	std::vector<glm::vec2> uvs;
 
+	if (fileExtension[0] == ".obj") {
 		loadObj(modelPath, vertices, uvs, normals);
-		displayObj(vertices, uvs, normals);
 	} 
 	else if (fileExtension[0] == ".dae") {
 		// TODO: load a .dae file
@@ -65,6 +64,8 @@ int main()
 		// TODO: load a .3ds file
 		// load3ds(modelPath);
 	}
+
+	display(vertices, uvs, normals);
 }
 
 
@@ -175,7 +176,7 @@ bool loadObj(
 }
 
 
-bool displayObj(
+bool display(
 	std::vector<glm::vec3>& vertices,
 	std::vector<glm::vec2>& uvs,
 	std::vector<glm::vec3>& normals)
