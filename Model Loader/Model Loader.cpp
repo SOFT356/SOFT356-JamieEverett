@@ -8,14 +8,19 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-enum ModelType
-{
-	MODELTYPE_OBJ = 'obj', // Wavefront OBJ/MTL
-	MODELTYPE_DAE = 'dae', // Collada DAE
-	MODELTYPE_FBX = 'fbx', // Autodesk FBX (proprietary)
-	MODELTYPE_3DS = '3ds'  // Autodesk 3DS (proprietary)
-};
 
+/*******************************************************
+FILETYPES:
+
+.obj - Wavefront OBJ & MTL
+.dae - Collada DAE
+.fbx - Autodesk FBX (proprietary)
+.3ds - Autodesk 3DS (proprietary)
+
+********************************************************/
+
+
+void printWelcomeAscii();
 
 bool loadObj(
 	const std::string path,
@@ -41,8 +46,14 @@ int main()
 	// END DEBUG
 
 	///////////////////////////////////////////////////
+	// Get user input (file/folder directory)
+	printWelcomeAscii();
+	std::cout << "Enter the location of a model file or folder of models to continue..." << std::endl;
+	std::string filePath; std::cin >> modelPath;
+
+	///////////////////////////////////////////////////
 	// Read Model
-	std::regex pattern(".[a-z0-9]+$", std::regex_constants::icase); // find file extension
+	std::regex pattern(".[a-z0-9]+$", std::regex_constants::icase);
 	std::smatch fileExtension;
 	std::regex_search(modelPath, fileExtension, pattern);
 	
@@ -50,7 +61,7 @@ int main()
 	std::vector<glm::vec2> uvs;
 
 	if (fileExtension[0] == ".obj") {
-		loadObj(modelPath, vertices, uvs, normals);
+		loadObj(modelPath, vertices, uvs, normals); // TODO: check return value for this
 	} 
 	else if (fileExtension[0] == ".dae") {
 		// TODO: load a .dae file
@@ -64,13 +75,19 @@ int main()
 		// TODO: load a .3ds file
 		// load3ds(modelPath);
 	}
+	else {
+		std::cout << std::endl;
+		std::cout << "ERROR->" << __FUNCTION__ << ": Unsupported file type" << std::endl;
+		std::cout << "Try using the supported file types:" << std::endl;
+		std::cout << "  - .obj" << std::endl;
+	}
 
 	display(vertices, uvs, normals);
 }
 
 
 bool loadObj(
-	const std::string path,				// model.obj filepath
+	const std::string path,					// model.obj filepath
 	std::vector<glm::vec3>& out_vertices,	// ojb data vectors to be output
 	std::vector<glm::vec2>& out_uvs,
 	std::vector<glm::vec3>& out_normals
@@ -165,7 +182,8 @@ bool loadObj(
 		}
 	}
 	else {
-		std::cout << "ERROR->" << __FUNCTION__ << ": Unable to open file";
+		std::cout << std::endl;
+		std::cout << "ERROR->" << __FUNCTION__ << ": Unable to open file, file may not exist or be corrupt" << std::endl;
 		return false;
 	}
 
@@ -182,4 +200,26 @@ bool display(
 	std::vector<glm::vec3>& normals)
 {
 	return true;
+}
+
+void printWelcomeAscii() {
+	std::cout << R"(
+	##################################################################################################
+	#                                                                                                #
+	#          ,___          .-;'                                                                    #
+	#         `"-.`\_...._/`.`                                                                       #
+	#      ,      \        /      __  __           _      _   _                     _                #
+	#   .-' ',    / ()   ()\     |  \/  |         | |    | | | |                   | |               #
+	#  `'._   \  /()    .  (|    | \  / | ___   __| | ___| | | |     ___   __ _  __| | ___ _ __      #
+	#      > .' ;,     -'-  /    | |\/| |/ _ \ / _` |/ _ \ | | |    / _ \ / _` |/ _` |/ _ \ '__|     #
+	#     / <   |;,     __.;     | |  | | (_) | (_| |  __/ | | |___| (_) | (_| | (_| |  __/ |        #
+	#     '-.'-.|  , \    , \    |_|  |_|\___/ \__,_|\___|_| |______\___/ \__,_|\__,_|\___|_|        #
+	#        `>.|;, \_)    \_)                                                                       #
+	#         `-;     ,    /                                                                         #
+	#            \    /   <                                                                          #
+	#             '. <`'-,_)                                                                         #
+	#          jgs '._)                                                                              #
+	#                                                                                                #
+	##################################################################################################
+	)" << '\n';
 }
