@@ -21,6 +21,7 @@ bool loadObj(
 	if (modelFile.is_open()) {
 		while (std::getline(modelFile, line)) {
 			// TODO: 2. Validate correct format
+			// http://paulbourke.net/dataformats/obj/ -> Error checks
 			// only read strings if file is in plaintext encoding
 
 			///////////////////////////////////////////////////

@@ -1,5 +1,6 @@
 #include "ModelLoader.h"
 #include "LoadObj.h"
+#include "Shader.h"
 
 
 /*******************************************************
@@ -11,23 +12,6 @@ FILETYPES:
 .3ds - Autodesk 3DS (proprietary)
 
 ********************************************************/
-
-
-// HARD CODED SHADERS TO BE REPLCACED WITH SHADER CLASS //
-const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
-
-const char* fragmentShaderSource = "#version 330 core\n"
-"out vec4 fragColour;\n"
-"void main()\n"
-"{\n"
-"    fragColour = vec4(0.0f, 0.5f, 1.0f, 1.0f);\n"
-"}\n\0";
-/////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////////////
@@ -130,9 +114,9 @@ void display(
 
 	glEnable(GL_DEPTH_TEST);
 
-	// TODO: Add shader system
+	// Build and compile Shader program
+	Shader shaders("shaders/shader.vs", "shaders/shader.fs");
 
-	int shaderProgram = shadersInit();
 	int VAO = displayInit(vertices);
 	
 	while (!glfwWindowShouldClose(window))
@@ -142,7 +126,8 @@ void display(
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUseProgram(shaderProgram);
+		shaders.use();
+
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, (GLint)vertices.size());
 		//glDrawElements(GL_TRIANGLES, (GLint)vertices.size(), GL_FLOAT, 0);
@@ -150,56 +135,6 @@ void display(
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-}
-
-
-int shadersInit() {
-	// Create shaders
-	int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR->" << __FUNCTION__ << ": Could not load vertex shader" << std::endl << infoLog << std::endl;
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-
-	int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR->" << __FUNCTION__ << ": Could not load fragment shader" << std::endl << infoLog << std::endl;
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-
-	// Link shaders
-	int shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR->" << __FUNCTION__ << ": Could not link program" << std::endl << infoLog << std::endl;;
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-
-	// Delete shaders
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-	return shaderProgram;
 }
 
 
