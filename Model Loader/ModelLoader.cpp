@@ -13,6 +13,23 @@ FILETYPES:
 ********************************************************/
 
 
+// HARD CODED SHADERS TO BE REPLCACED WITH SHADER CLASS //
+const char* vertexShaderSource = "#version 330 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"void main()\n"
+"{\n"
+"    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"}\0";
+
+const char* fragmentShaderSource = "#version 330 core\n"
+"out vec4 fragColour;\n"
+"void main()\n"
+"{\n"
+"    fragColour = vec4(0.0f, 0.5f, 1.0f, 1.0f);\n"
+"}\n\0";
+/////////////////////////////////////////////////////////
+
+
 ///////////////////////////////////////////////////
 // Forward Declarations
 bool loadObj(
@@ -26,7 +43,8 @@ void display(
 	std::vector<glm::vec2>& uvs,
 	std::vector<glm::vec3>& normals);
 
-void displayInit(std::vector<glm::vec3> vertices);
+int shadersInit();
+int displayInit(std::vector<glm::vec3> vertices);
 void onWindowResize(GLFWwindow* window, int width, int height);
 void printWelcomeAscii();
 
@@ -41,16 +59,18 @@ bool firstLaunch = true;
 
 int main()
 {
+	/*
 	if (firstLaunch)
 		printWelcomeAscii();
-	firstLaunch = false;
+	 firstLaunch = false;
 
 	///////////////////////////////////////////////////
 	// Get user input (file/folder directory)
 	std::cout << "Enter the location of a model file or folder of models to continue..." << std::endl;
 	//std::cout << "(press 'q' to quit at any time)" << std::endl;  // TODO: this
 	std::string modelPath; std::cin >> modelPath;
-
+	*/
+	std::string modelPath = "creeper.obj";
 
 	///////////////////////////////////////////////////
 	// Read Model
@@ -112,8 +132,9 @@ void display(
 
 	// TODO: Add shader system
 
-	displayInit(vertices);
-
+	int shaderProgram = shadersInit();
+	int VAO = displayInit(vertices);
+	
 	while (!glfwWindowShouldClose(window))
 	{
 		// TODO: input handling
@@ -121,26 +142,85 @@ void display(
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// TODO: pollEvents();
+		glUseProgram(shaderProgram);
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, (GLint)vertices.size());
+		//glDrawElements(GL_TRIANGLES, (GLint)vertices.size(), GL_FLOAT, 0);
 
 		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
 }
 
 
-void displayInit(std::vector<glm::vec3> vertices) {
+int shadersInit() {
+	// Create shaders
+	int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+	glCompileShader(vertexShader);
+
+	int success;
+	char infoLog[512];
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		std::cout << "ERROR->" << __FUNCTION__ << ": Could not load vertex shader" << std::endl << infoLog << std::endl;
+		glfwTerminate();
+		exit(EXIT_FAILURE);
+	}
+
+	int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	glCompileShader(fragmentShader);
+
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		std::cout << "ERROR->" << __FUNCTION__ << ": Could not load fragment shader" << std::endl << infoLog << std::endl;
+		glfwTerminate();
+		exit(EXIT_FAILURE);
+	}
+
+	// Link shaders
+	int shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success) {
+		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		std::cout << "ERROR->" << __FUNCTION__ << ": Could not link program" << std::endl << infoLog << std::endl;;
+		glfwTerminate();
+		exit(EXIT_FAILURE);
+	}
+
+	// Delete shaders
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+
+	return shaderProgram;
+}
+
+
+int displayInit(std::vector<glm::vec3> vertices) {
 	unsigned int VAO, VBO;
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 
-	// Bind VAO -> VBO
+	// bind VAO
 	glBindVertexArray(VAO);
+	// bind + set VBO
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+	// configure vertex attribute(s)
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
-	// TODO: position attr.
 	// TODO: texture attr.
+
+	return VAO;
 }
 
 
