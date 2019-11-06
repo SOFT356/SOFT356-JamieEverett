@@ -21,34 +21,35 @@ bool loadObj(
 	std::vector<glm::vec2>& uvs, 
 	std::vector<glm::vec3>& normals);
 
-bool display(
+void display(
 	std::vector<glm::vec3>& vertices,
 	std::vector<glm::vec2>& uvs,
 	std::vector<glm::vec3>& normals);
 
+void displayInit(std::vector<glm::vec3> vertices);
 void onWindowResize(GLFWwindow* window, int width, int height);
 void printWelcomeAscii();
 
 
 ///////////////////////////////////////////////////
 // Global Vars (Default Program Behaviour)
-const std::string DEFAULT_SCR_TITLE = "JE - ModelLoader";
+const char* DEFAULT_SCR_TITLE = "JE - ModelLoader";
 const int DEFAULT_SCR_WIDTH = 800;
 const int DEFAULT_SCR_HEIGHT = 600;
+bool firstLaunch = true;
 
 
 int main()
 {
-	// BEGIN DEBUG
-	std::string modelPath = "Creeper.obj";
-	// END DEBUG
-
+	if (firstLaunch)
+		printWelcomeAscii();
+	firstLaunch = false;
 
 	///////////////////////////////////////////////////
 	// Get user input (file/folder directory)
-	printWelcomeAscii();
 	std::cout << "Enter the location of a model file or folder of models to continue..." << std::endl;
-	std::string filePath; std::cin >> modelPath;
+	//std::cout << "(press 'q' to quit at any time)" << std::endl;  // TODO: this
+	std::string modelPath; std::cin >> modelPath;
 
 
 	///////////////////////////////////////////////////
@@ -81,24 +82,65 @@ int main()
 		std::cout << "ERROR->" << __FUNCTION__ << ": Unsupported file type" << std::endl;
 		std::cout << "Try using the supported file types:" << std::endl;
 		std::cout << "  - .obj" << std::endl;
+
+		// TODO: Need to ask for user input again here...
+		exit(EXIT_FAILURE);
 	}
 
 	display(vertices, uvs, normals);
+
+	// BEGIN DEBUG
+	system("pause");
+	// END DEBUG
 }
 
 
-bool display(
+void display(
 	std::vector<glm::vec3>& vertices,
 	std::vector<glm::vec2>& uvs,
 	std::vector<glm::vec3>& normals)
 {
 	glfwInit();
 
-	GLFWwindow* window = glfwCreateWindow(DEFAULT_SCR_WIDTH, DEFAULT_SCR_HEIGHT, "DEFAULT_SCR_TITLE", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(DEFAULT_SCR_WIDTH, DEFAULT_SCR_HEIGHT, DEFAULT_SCR_TITLE, NULL, NULL);
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, onWindowResize);
 
-	return true;
+	glewInit();
+
+	glEnable(GL_DEPTH_TEST);
+
+	// TODO: Add shader system
+
+	displayInit(vertices);
+
+	while (!glfwWindowShouldClose(window))
+	{
+		// TODO: input handling
+
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// TODO: pollEvents();
+
+		glfwSwapBuffers(window);
+	}
+}
+
+
+void displayInit(std::vector<glm::vec3> vertices) {
+	unsigned int VAO, VBO;
+
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+
+	// Bind VAO -> VBO
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+
+	// TODO: position attr.
+	// TODO: texture attr.
 }
 
 
