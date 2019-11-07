@@ -27,6 +27,7 @@ void display(
 	std::vector<glm::vec2>& uvs,
 	std::vector<glm::vec3>& normals);
 
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void setUniformLocation(Shader shaders, glm::mat4 matrix, const char* uniformName);
 int displayInit(std::vector<glm::vec3> vertices);
 void onWindowResize(GLFWwindow* window, int width, int height);
@@ -43,7 +44,6 @@ bool firstLaunch = true;
 
 int main()
 {
-	/*
 	if (firstLaunch)
 		printWelcomeAscii();
 	 firstLaunch = false;
@@ -51,10 +51,10 @@ int main()
 	///////////////////////////////////////////////////
 	// Get user input (file/folder directory)
 	std::cout << "Enter the location of a model file or folder of models to continue..." << std::endl;
-	//std::cout << "(press 'q' to quit at any time)" << std::endl;  // TODO: this
+	std::cout << "(press 'Escape' to close an open model)" << std::endl;
 	std::string modelPath; std::cin >> modelPath;
-	*/
-	std::string modelPath = "creeper.obj";
+	
+	//std::string modelPath = "creeper.obj";
 
 	///////////////////////////////////////////////////
 	// Read Model
@@ -110,6 +110,8 @@ void display(
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, onWindowResize);
 
+	glfwSetKeyCallback(window, keyCallback);
+
 	glewInit();
 
 	glEnable(GL_DEPTH_TEST);
@@ -121,8 +123,6 @@ void display(
 	
 	while (!glfwWindowShouldClose(window))
 	{
-		// TODO: input handling
-
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -145,10 +145,23 @@ void display(
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, (GLint)vertices.size());
-		//glDrawElements(GL_TRIANGLES, (GLint)vertices.size(), GL_FLOAT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+	}
+
+	glfwTerminate();
+
+	main();
+}
+
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int actions, int mods) {
+	switch (key)
+	{
+	case GLFW_KEY_ESCAPE:
+		glfwSetWindowShouldClose(window, true);
+		break;
 	}
 }
 
