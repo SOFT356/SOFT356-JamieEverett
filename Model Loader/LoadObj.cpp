@@ -56,7 +56,7 @@ bool loadObj(
 				std::stringstream lineStream(line.substr(2));
 
 				char delim = '/';
-				int indicesPerFace = (std::count(line.begin(), line.end(), delim))/2; // 2 delims per index
+				auto indicesPerFace = (std::count(line.begin(), line.end(), delim))/2; // 2 delims per index
 				
 				std::vector<std::string> faceElements;
 				std::vector<unsigned int> tmpVertIndices, tmpUvIndices, tmpNormalIndices;

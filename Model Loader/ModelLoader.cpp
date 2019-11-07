@@ -1,6 +1,9 @@
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "ModelLoader.h"
 #include "LoadObj.h"
 #include "Shader.h"
+#include "stb_image.h"
 
 
 /*******************************************************
@@ -12,6 +15,21 @@ FILETYPES:
 .3ds - Autodesk 3DS (proprietary)
 
 ********************************************************/
+
+
+///////////////////////////////////////////////////
+// DataTypes
+enum BufferValue { 
+	TRIANGLES,
+	COLOUR,
+	TEXTURES,
+	NUM_BUFFERS = 3
+};
+
+struct displayObj {
+	unsigned int VAO;
+	unsigned int texture;
+};
 
 
 ///////////////////////////////////////////////////
@@ -28,8 +46,8 @@ void display(
 	std::vector<glm::vec3>& normals);
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void setUniformLocation(Shader shaders, glm::mat4 matrix, const char* uniformName);
-int displayInit(std::vector<glm::vec3> vertices);
+void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName);
+displayObj displayInit(std::vector<glm::vec3> vertices, std::vector<glm::vec2> uvs, std::vector<glm::vec3> normals);
 void onWindowResize(GLFWwindow* window, int width, int height);
 void printWelcomeAscii();
 
@@ -39,15 +57,16 @@ void printWelcomeAscii();
 const char* DEFAULT_SCR_TITLE = "JE - ModelLoader";
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
-bool firstLaunch = true;
+bool displayAscii = true;
+GLuint buffers[1];
 
 
 int main()
 {
-	if (firstLaunch)
+	if (displayAscii)
 		printWelcomeAscii();
-	 firstLaunch = false;
-
+	displayAscii = false;
+	
 	///////////////////////////////////////////////////
 	// Get user input (file/folder directory)
 	std::cout << "Enter the location of a model file or folder of models to continue..." << std::endl;
@@ -82,13 +101,16 @@ int main()
 		// load3ds(modelPath);
 	}
 	else {
+		system("cls");
+
+		printWelcomeAscii();
 		std::cout << std::endl;
 		std::cout << "ERROR->" << __FUNCTION__ << ": Unsupported file type" << std::endl;
 		std::cout << "Try using the supported file types:" << std::endl;
 		std::cout << "  - .obj" << std::endl;
+		std::cout << std::endl;
 
-		// TODO: Need to ask for user input again here...
-		exit(EXIT_FAILURE);
+		main();
 	}
 
 	display(vertices, uvs, normals);
@@ -119,7 +141,7 @@ void display(
 	// Build and compile Shader program
 	Shader shaders("shaders/shader.vs", "shaders/shader.fs");
 
-	int VAO = displayInit(vertices);
+	displayObj displayVals = displayInit(vertices, uvs, normals);
 	
 	while (!glfwWindowShouldClose(window))
 	{
@@ -131,24 +153,32 @@ void display(
 		glm::mat4 view = glm::mat4(1.0f);
 		glm::mat4 projection = glm::mat4(1.0f);
 
-		float angleDelta = (float)glfwGetTime() * 0.3f;
+		float angleDelta = (float)glfwGetTime() * 0.4f;
 
 		model = glm::rotate(model, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
+		//model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 		projection = glm::perspective(glm::radians(45.0f), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
 
+		// bind textures
+		glBindTexture(GL_TEXTURE_2D, displayVals.texture);
+
 		// Select shaders
 		shaders.use();
-		setUniformLocation(shaders, model, "model");
-		setUniformLocation(shaders, view, "view");
-		setUniformLocation(shaders, projection, "projection");
+		setUniformMatrix(shaders, model, "model");
+		setUniformMatrix(shaders, view, "view");
+		setUniformMatrix(shaders, projection, "projection");
+		glUniform1i(glGetUniformLocation(shaders.ID, "theTexture"), 0);
 
-		glBindVertexArray(VAO);
+		glBindVertexArray(displayVals.VAO);
 		glDrawArrays(GL_TRIANGLES, 0, (GLint)vertices.size());
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	glDeleteVertexArrays(1, &displayVals.VAO);
+	glDeleteBuffers(BufferValue::NUM_BUFFERS, buffers);
 
 	glfwTerminate();
 
@@ -161,41 +191,84 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int actions, int mod
 	{
 	case GLFW_KEY_ESCAPE:
 		glfwSetWindowShouldClose(window, true);
+		displayAscii = true;
+		system("cls");
 		break;
 	}
 }
 
 
-void setUniformLocation(Shader shaders, glm::mat4 matrix, const char* uniformName) {
+void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName) {
 	unsigned int loc = glGetUniformLocation(shaders.ID, uniformName);
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 
-int displayInit(std::vector<glm::vec3> vertices) {
-	unsigned int VAO, VBO;
+displayObj displayInit(std::vector<glm::vec3> vertices,
+	std::vector<glm::vec2> uvs,
+	std::vector<glm::vec3> normals
+) {
+	// add textures
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	// texture params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	stbi_set_flip_vertically_on_load(true);
+
+	GLint width, height, nrChannels;
+	unsigned char* data = stbi_load("Texture.png", &width, &height, &nrChannels, 0);
+
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		std::cout << "ERROR->" << __FUNCTION__ << ": Failed to load texture" << std::endl;
+	}
+
+	stbi_image_free(data);
+
+	// setup buffers
+	unsigned int VAO;
 
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-
-	// bind VAO
 	glBindVertexArray(VAO);
 
-	// bind + set VBO
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glGenBuffers(BufferValue::NUM_BUFFERS, buffers);
+
+	// position buffer
+	glBindBuffer(GL_ARRAY_BUFFER, buffers[TRIANGLES]);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
-	// configure vertex attribute(s)
-	// position:
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
-	// colour:
+
+	// colour buffer
+	glBindBuffer(GL_ARRAY_BUFFER, buffers[COLOUR]);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(1);
 
-	// TODO: texture attr.
+	// texture buffer
+	glBindBuffer(GL_ARRAY_BUFFER, buffers[TEXTURES]);
+	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 
-	return VAO;
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(2);
+
+	// set return values
+	displayObj vals;
+	vals.VAO = VAO;
+	vals.texture = texture;
+
+	return vals;
 }
 
 
