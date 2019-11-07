@@ -55,20 +55,43 @@ bool loadObj(
 				std::string buf;
 				std::stringstream lineStream(line.substr(2));
 
+				char delim = '/';
+				int indicesPerFace = (std::count(line.begin(), line.end(), delim))/2; // 2 delims per index
+				
+				std::vector<std::string> faceElements;
+				std::vector<unsigned int> tmpVertIndices, tmpUvIndices, tmpNormalIndices;
+
 				while (lineStream >> buf) {
 					std::string token;
 					std::stringstream faceStream(buf);
-					std::vector<std::string> faceElements;
 
-					while (getline(faceStream, token, '/')) {
+					while (getline(faceStream, token, delim)) {
 						faceElements.push_back(token);
 					}
 
-					vertexIndices.push_back(std::stoi(faceElements[0]));
-					uvIndices.push_back(std::stoi(faceElements[1]));
-					normalIndices.push_back(std::stoi(faceElements[2]));
+					tmpVertIndices.push_back(std::stoi(faceElements[0]));
+					tmpUvIndices.push_back(std::stoi(faceElements[1]));
+					tmpNormalIndices.push_back(std::stoi(faceElements[2]));
 
 					faceElements.clear();
+				}
+
+				if (indicesPerFace == 3) {
+					vertexIndices.insert(vertexIndices.end(), { tmpVertIndices[0], tmpVertIndices[1], tmpVertIndices[2] });
+					uvIndices.insert(uvIndices.end(), { tmpUvIndices[0], tmpUvIndices[1], tmpUvIndices[2] });
+					normalIndices.insert(normalIndices.end(), { tmpNormalIndices[0], tmpNormalIndices[1], tmpNormalIndices[2] });
+				}
+				else if (indicesPerFace == 4) {
+					// convert quads to triangles
+					vertexIndices.insert(vertexIndices.end(), {
+						tmpVertIndices[0], tmpVertIndices[1], tmpVertIndices[2],
+						tmpVertIndices[2], tmpVertIndices[3], tmpVertIndices[0] });
+					uvIndices.insert(uvIndices.end(), {
+						tmpUvIndices[0], tmpUvIndices[1], tmpUvIndices[2],
+						tmpUvIndices[2], tmpUvIndices[3], tmpUvIndices[0] });
+					normalIndices.insert(normalIndices.end(), {
+						tmpNormalIndices[0], tmpNormalIndices[1], tmpNormalIndices[2],
+						tmpNormalIndices[2], tmpNormalIndices[3], tmpNormalIndices[0] });
 				}
 			}
 		}

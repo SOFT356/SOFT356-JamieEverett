@@ -129,7 +129,7 @@ void display(
 		// Model transformations
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 projection;
+		glm::mat4 projection = glm::mat4(1.0f);
 
 		float angleDelta = (float)glfwGetTime() * 0.3f;
 
@@ -144,7 +144,7 @@ void display(
 		setUniformLocation(shaders, projection, "projection");
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_QUADS, 0, (GLint)vertices.size());
+		glDrawArrays(GL_TRIANGLES, 0, (GLint)vertices.size());
 		//glDrawElements(GL_TRIANGLES, (GLint)vertices.size(), GL_FLOAT, 0);
 
 		glfwSwapBuffers(window);
