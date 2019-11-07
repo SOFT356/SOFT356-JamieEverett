@@ -27,7 +27,7 @@ void display(
 	std::vector<glm::vec2>& uvs,
 	std::vector<glm::vec3>& normals);
 
-int shadersInit();
+void setUniformLocation(Shader shaders, glm::mat4 matrix, const char* uniformName);
 int displayInit(std::vector<glm::vec3> vertices);
 void onWindowResize(GLFWwindow* window, int width, int height);
 void printWelcomeAscii();
@@ -36,8 +36,8 @@ void printWelcomeAscii();
 ///////////////////////////////////////////////////
 // Global Vars (Default Program Behaviour)
 const char* DEFAULT_SCR_TITLE = "JE - ModelLoader";
-const int DEFAULT_SCR_WIDTH = 800;
-const int DEFAULT_SCR_HEIGHT = 600;
+const int SCR_WIDTH = 800;
+const int SCR_HEIGHT = 600;
 bool firstLaunch = true;
 
 
@@ -106,7 +106,7 @@ void display(
 {
 	glfwInit();
 
-	GLFWwindow* window = glfwCreateWindow(DEFAULT_SCR_WIDTH, DEFAULT_SCR_HEIGHT, DEFAULT_SCR_TITLE, NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, DEFAULT_SCR_TITLE, NULL, NULL);
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, onWindowResize);
 
@@ -126,7 +126,22 @@ void display(
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// Model transformations
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 projection;
+
+		float angleDelta = (float)glfwGetTime() * 0.3f;
+
+		model = glm::rotate(model, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		projection = glm::perspective(glm::radians(45.0f), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
+
+		// Select shaders
 		shaders.use();
+		setUniformLocation(shaders, model, "model");
+		setUniformLocation(shaders, view, "view");
+		setUniformLocation(shaders, projection, "projection");
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, (GLint)vertices.size());
@@ -135,6 +150,12 @@ void display(
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+}
+
+
+void setUniformLocation(Shader shaders, glm::mat4 matrix, const char* uniformName) {
+	unsigned int loc = glGetUniformLocation(shaders.ID, uniformName);
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 

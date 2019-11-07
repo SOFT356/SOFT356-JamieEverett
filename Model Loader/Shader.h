@@ -12,6 +12,8 @@
 
 class Shader {
 public:
+	unsigned int ID; // Program ID
+
 	Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
 	void use();
 private:

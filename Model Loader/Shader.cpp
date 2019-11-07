@@ -1,6 +1,5 @@
 #include "Shader.h"
 
-unsigned int ID; // Program ID
 int success;
 char infoLog[512];
 
