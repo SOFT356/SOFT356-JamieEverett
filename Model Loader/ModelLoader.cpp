@@ -144,7 +144,7 @@ void display(
 		setUniformLocation(shaders, projection, "projection");
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, (GLint)vertices.size());
+		glDrawArrays(GL_QUADS, 0, (GLint)vertices.size());
 		//glDrawElements(GL_TRIANGLES, (GLint)vertices.size(), GL_FLOAT, 0);
 
 		glfwSwapBuffers(window);
@@ -167,12 +167,18 @@ int displayInit(std::vector<glm::vec3> vertices) {
 
 	// bind VAO
 	glBindVertexArray(VAO);
+
 	// bind + set VBO
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+
 	// configure vertex attribute(s)
+	// position:
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	// colour:
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(1);
 
 	// TODO: texture attr.
 
