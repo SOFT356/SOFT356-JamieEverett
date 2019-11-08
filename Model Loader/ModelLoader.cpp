@@ -54,11 +54,21 @@ void printWelcomeAscii();
 
 ///////////////////////////////////////////////////
 // Global Vars (Default Program Behaviour)
+// window properties
 const char* DEFAULT_SCR_TITLE = "JE - ModelLoader";
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
-bool displayAscii = true;
+
+// textures
 GLuint buffers[1];
+
+// camera
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+// user feedback
+bool displayAscii = true;
 
 
 int main()
@@ -66,14 +76,14 @@ int main()
 	if (displayAscii)
 		printWelcomeAscii();
 	displayAscii = false;
-	
+	/*
 	///////////////////////////////////////////////////
 	// Get user input (file/folder directory)
 	std::cout << "Enter the location of a model file or folder of models to continue..." << std::endl;
 	std::cout << "(press 'Escape' to close an open model)" << std::endl;
 	std::string modelPath; std::cin >> modelPath;
-	
-	//std::string modelPath = "C:\\Users\\Jamie\\Downloads\\Test Files (Model Loader)-20191105\\Creeper-obj\\creeper.obj";
+	*/
+	std::string modelPath = "C:\\Users\\jeverett\\Downloads\\Test Files (Model Loader)-20191108\\Creeper-obj\\creeper.obj";
 
 	///////////////////////////////////////////////////
 	// Read Model
@@ -145,7 +155,7 @@ void display(
 	
 	while (!glfwWindowShouldClose(window))
 	{
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Model transformations
@@ -155,9 +165,10 @@ void display(
 
 		float angleDelta = (float)glfwGetTime() * 0.4f;
 
-		model = glm::rotate(model, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
+		//model = glm::rotate(model, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
 		//model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
 		projection = glm::perspective(glm::radians(45.0f), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
 
 		// bind textures
@@ -187,13 +198,27 @@ void display(
 
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int actions, int mods) {
+	float cameraSpeed = 0.05f;
+
 	switch (key)
 	{
-	case GLFW_KEY_ESCAPE:
-		glfwSetWindowShouldClose(window, true);
-		displayAscii = true;
-		system("cls");
-		break;
+		case GLFW_KEY_ESCAPE:
+			glfwSetWindowShouldClose(window, true);
+			displayAscii = true;
+			system("cls");
+			break;
+		case GLFW_KEY_W:
+			cameraPos += cameraSpeed * cameraFront;
+			break;
+		case GLFW_KEY_S:
+			cameraPos -= cameraSpeed * cameraFront;
+			break;
+		case GLFW_KEY_A:
+			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+			break;
+		case GLFW_KEY_D:
+			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+			break;
 	}
 }
 
