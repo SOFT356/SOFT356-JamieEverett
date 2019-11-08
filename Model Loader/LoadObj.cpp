@@ -16,10 +16,10 @@ bool loadObj(
 	///////////////////////////////////////////////////
 	// 1. Read file
 	std::string line;
-	std::ifstream modelFile(path, std::ios::binary);
+	std::ifstream objFile(path, std::ios::binary);
 
-	if (modelFile.is_open()) {
-		while (std::getline(modelFile, line)) {
+	if (objFile.is_open()) {
+		while (std::getline(objFile, line)) {
 			// TODO: 2. Validate correct format
 			// http://paulbourke.net/dataformats/obj/ -> Error checks
 			// only read strings if file is in plaintext encoding
@@ -122,9 +122,32 @@ bool loadObj(
 	}
 	else {
 		std::cout << std::endl;
-		std::cout << "ERROR->" << __FUNCTION__ << ": Unable to open file, file may not exist or be corrupt" << std::endl;
+		std::cout << "ERROR->" << __FUNCTION__ << ": Unable to open obj file, the file may not exist or be corrupt" << std::endl;
 		return false;
 	}
+
+
+	///////////////////////////////////////////////////
+	// 4. Process material file
+	std::string mtlFileName = path.substr(0, path.find_last_of(".")) + ".mtl";
+	std::ifstream mtlFile(mtlFileName, std::ios::binary);
+	line.erase();
+
+	if (mtlFile.is_open()) {
+		while (std::getline(mtlFile, line)) {
+			std::string mtlDataType = line.substr(0, line.find(" "));
+			
+			if (mtlDataType == "") {
+
+			}
+		}
+	}
+	else {
+		std::cout << std::endl;
+		std::cout << "ERROR->" << __FUNCTION__ << ": Unable to open mtl file, the file may not exist or be corrupt" << std::endl;
+		return false;
+	}
+
 
 	///////////////////////////////////////////////////
 	// 5. Deallocate resources

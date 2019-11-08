@@ -73,7 +73,7 @@ int main()
 	std::cout << "(press 'Escape' to close an open model)" << std::endl;
 	std::string modelPath; std::cin >> modelPath;
 	
-	//std::string modelPath = "creeper.obj";
+	//std::string modelPath = "C:\\Users\\Jamie\\Downloads\\Test Files (Model Loader)-20191105\\Creeper-obj\\creeper.obj";
 
 	///////////////////////////////////////////////////
 	// Read Model
