@@ -26,9 +26,9 @@ enum BufferValue {
 	NUM_BUFFERS = 3
 };
 
-enum class MouseInput {
-	NORMAL,
-	IGNORED
+enum class WindowStatus {
+	FOCUSED,
+	NOT_FOCUSED
 };
 
 struct displayObj {
@@ -50,6 +50,7 @@ void display(
 	std::vector<glm::vec2>& uvs,
 	std::vector<glm::vec3>& normals);
 
+void processInput(GLFWwindow* window);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
@@ -79,7 +80,7 @@ float yaw = -90.0f;
 float pitch = 0.0f;
 float fov = 45.0f;
 bool firstMouse = true;
-MouseInput mouseBehaviour = MouseInput::NORMAL;
+WindowStatus windowStatus = WindowStatus::FOCUSED;
 
 // rendering
 bool captureMouse = true;
@@ -88,6 +89,7 @@ bool wireframe = false;
 // timing
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
+bool awaitingRelease = false;
 
 // user feedback
 bool displayAscii = true;
@@ -188,6 +190,9 @@ void display(
 		deltaTime = currFrame - lastFrame;
 		lastFrame = currFrame;
 
+		// Check inputs
+		processInput(window);
+
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -226,58 +231,59 @@ void display(
 
 	glfwTerminate();
 
-	main();
+	//main();
 }
 
 
-void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void processInput(GLFWwindow* window) {
+	if ((glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) && !awaitingRelease) {
+		firstMouse = true;
+		captureMouse = !captureMouse;
+		captureMouse ? windowStatus = WindowStatus::FOCUSED : windowStatus = WindowStatus::NOT_FOCUSED;
+		captureMouse ? glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED) : glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		awaitingRelease = true;
+	}
+
+	if (windowStatus == WindowStatus::NOT_FOCUSED)
+		return;
+
 	float cameraSpeed = 2.5f * deltaTime;
 
-	switch (key)
-	{
-		case GLFW_KEY_ESCAPE:
-			glfwSetWindowShouldClose(window, true);
-			displayAscii = true;
-			system("cls");
-			break;
-		case GLFW_KEY_W:
-			cameraPos += cameraSpeed * cameraFront;
-			break;
-		case GLFW_KEY_S:
-			cameraPos -= cameraSpeed * cameraFront;
-			break;
-		case GLFW_KEY_A:
-			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-			break;
-		case GLFW_KEY_D:
-			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-			break;
-		case GLFW_KEY_LEFT_SHIFT:
-			cameraPos += cameraUp * cameraSpeed;
-			break;
-		case GLFW_KEY_LEFT_CONTROL:
-			cameraPos -= cameraUp * cameraSpeed;
-			break;
-		case GLFW_KEY_1:
-			if (action == 1) {
-				wireframe = !wireframe;
-				wireframe ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			}
-			break;
-		case GLFW_KEY_2:
-			if (action == 1) {
-				firstMouse = true;
-				captureMouse = !captureMouse;
-				captureMouse ? mouseBehaviour = MouseInput::NORMAL : mouseBehaviour = MouseInput::IGNORED;
-				captureMouse ? glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED) : glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			}
-			break;
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+		displayAscii = true;
+		system("cls");
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		cameraPos += cameraUp * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		cameraPos -= cameraUp * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS && !awaitingRelease) {
+		wireframe = !wireframe;
+		wireframe ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		awaitingRelease = true;
 	}
 }
 
 
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (GLFW_KEY_1 && action == GLFW_RELEASE)
+		awaitingRelease = false;
+	if (GLFW_KEY_2 && action == GLFW_RELEASE)
+		awaitingRelease = false;
+}
+
+
 void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
-	if (mouseBehaviour == MouseInput::IGNORED)
+	if (windowStatus == WindowStatus::NOT_FOCUSED)
 		return;
 
 	if (firstMouse) {
