@@ -26,7 +26,7 @@ enum BufferValue {
 	NUM_BUFFERS = 3
 };
 
-enum MouseInput {
+enum class MouseInput {
 	NORMAL,
 	IGNORED
 };
@@ -69,10 +69,6 @@ const int SCR_HEIGHT = 600;
 // textures
 GLuint buffers[1];
 
-// rendering
-bool wireframe = false;
-bool captureMouse = true;
-
 // camera
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -84,6 +80,10 @@ float pitch = 0.0f;
 float fov = 45.0f;
 bool firstMouse = true;
 MouseInput mouseBehaviour = MouseInput::NORMAL;
+
+// rendering
+bool captureMouse = true;
+bool wireframe = false;
 
 // timing
 float deltaTime = 0.0f; // Time between current frame and last frame
@@ -105,7 +105,7 @@ int main()
 	std::cout << "(press 'Escape' to close an open model)" << std::endl;
 	std::string modelPath; std::cin >> modelPath;
 	*/
-	std::string modelPath = "C:\\Users\\jeverett\\Downloads\\Test Files (Model Loader)-20191108\\Creeper-obj\\creeper.obj";
+	std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\Creeper-obj\creeper.obj)";
 
 	///////////////////////////////////////////////////
 	// Read Model
@@ -350,7 +350,7 @@ displayObj displayInit(std::vector<glm::vec3> vertices,
 	stbi_set_flip_vertically_on_load(true);
 
 	GLint width, height, nrChannels;
-	unsigned char* data = stbi_load("Texture.png", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("Test\ Files/Creeper-obj/Texture.png", &width, &height, &nrChannels, 0);
 
 	if (data) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
