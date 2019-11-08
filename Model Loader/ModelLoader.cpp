@@ -52,6 +52,7 @@ void display(
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
+void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName);
 displayObj displayInit(std::vector<glm::vec3> vertices, std::vector<glm::vec2> uvs, std::vector<glm::vec3> normals);
 void onWindowResize(GLFWwindow* window, int width, int height);
@@ -80,6 +81,7 @@ float lastX = 400;
 float lastY = 300;
 float yaw = -90.0f;
 float pitch = 0.0f;
+float fov = 45.0f;
 bool firstMouse = true;
 MouseInput mouseBehaviour = MouseInput::NORMAL;
 
@@ -165,6 +167,7 @@ void display(
 	// Attach input callbacks
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetCursorPosCallback(window, mouseCallback);
+	glfwSetScrollCallback(window, scrollCallback);
 
 	glewInit();
 
@@ -199,7 +202,7 @@ void display(
 		//model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
-		projection = glm::perspective(glm::radians(45.0f), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
 
 		// bind textures
 		glBindTexture(GL_TEXTURE_2D, displayVals.texture);
@@ -309,6 +312,17 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
 	cameraDir.y = sin(glm::radians(pitch));
 	cameraDir.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
 	cameraFront = glm::normalize(cameraDir);
+}
+
+
+void scrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
+	// Limit fov between 1.0f and 45.0f
+	if (fov >= 1.0f && fov <= 45.0f)
+		fov -= yOffset;
+	if (fov <= 1.0f)
+		fov = 1.0f;
+	if (fov >= 45.0f)
+		fov = 45.0f;
 }
 
 
