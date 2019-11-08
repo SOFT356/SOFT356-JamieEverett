@@ -26,6 +26,11 @@ enum BufferValue {
 	NUM_BUFFERS = 3
 };
 
+enum MouseInput {
+	NORMAL,
+	IGNORED
+};
+
 struct displayObj {
 	unsigned int VAO;
 	unsigned int texture;
@@ -46,6 +51,7 @@ void display(
 	std::vector<glm::vec3>& normals);
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void mouseCallback(GLFWwindow* window, double xPos, double yPos);
 void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName);
 displayObj displayInit(std::vector<glm::vec3> vertices, std::vector<glm::vec2> uvs, std::vector<glm::vec3> normals);
 void onWindowResize(GLFWwindow* window, int width, int height);
@@ -70,6 +76,14 @@ bool captureMouse = true;
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float lastX = 400;
+float lastY = 300;
+float yaw = -90.0f;
+float pitch = 0.0f;
+bool firstMouse = true;
+MouseInput mouseBehaviour = MouseInput::NORMAL;
+
+// timing
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -148,7 +162,9 @@ void display(
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, onWindowResize);
 
+	// Attach input callbacks
 	glfwSetKeyCallback(window, keyCallback);
+	glfwSetCursorPosCallback(window, mouseCallback);
 
 	glewInit();
 
@@ -247,11 +263,52 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 			break;
 		case GLFW_KEY_2:
 			if (action == 1) {
+				firstMouse = true;
 				captureMouse = !captureMouse;
+				captureMouse ? mouseBehaviour = MouseInput::NORMAL : mouseBehaviour = MouseInput::IGNORED;
 				captureMouse ? glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED) : glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 			break;
 	}
+}
+
+
+void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
+	if (mouseBehaviour == MouseInput::IGNORED)
+		return;
+
+	if (firstMouse) {
+		lastX = xPos;
+		lastY = yPos;
+		firstMouse = false;
+	}
+
+	// Calculate mouse offset
+	float xOffset = xPos - lastX;
+	float yOffset = lastY - yPos;
+	lastX = xPos;
+	lastY = yPos;
+
+	float sensitivity = 0.05f;
+	xOffset *= sensitivity;
+	yOffset *= sensitivity;
+
+	// Add offset values to camera values
+	yaw += xOffset;
+	pitch += yOffset;
+
+	// Add pitch constraints
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	// Calculate direction vector
+	glm::vec3 cameraDir;
+	cameraDir.x = cos(glm::radians(pitch)) *  cos(glm::radians(yaw));
+	cameraDir.y = sin(glm::radians(pitch));
+	cameraDir.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+	cameraFront = glm::normalize(cameraDir);
 }
 
 
