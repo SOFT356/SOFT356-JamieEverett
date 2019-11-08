@@ -62,10 +62,16 @@ const int SCR_HEIGHT = 600;
 // textures
 GLuint buffers[1];
 
+// rendering
+bool wireframe = false;
+bool captureMouse = true;
+
 // camera
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float deltaTime = 0.0f; // Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
 
 // user feedback
 bool displayAscii = true;
@@ -73,8 +79,8 @@ bool displayAscii = true;
 
 int main()
 {
-	if (displayAscii)
-		printWelcomeAscii();
+	/*if (displayAscii)
+		printWelcomeAscii();*/
 	displayAscii = false;
 	/*
 	///////////////////////////////////////////////////
@@ -146,6 +152,9 @@ void display(
 
 	glewInit();
 
+	// Record mouse input
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	
 	glEnable(GL_DEPTH_TEST);
 
 	// Build and compile Shader program
@@ -155,6 +164,11 @@ void display(
 	
 	while (!glfwWindowShouldClose(window))
 	{
+		// Frame timer logic
+		float currFrame = glfwGetTime();
+		deltaTime = currFrame - lastFrame;
+		lastFrame = currFrame;
+
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -197,8 +211,8 @@ void display(
 }
 
 
-void keyCallback(GLFWwindow* window, int key, int scancode, int actions, int mods) {
-	float cameraSpeed = 0.05f;
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	float cameraSpeed = 2.5f * deltaTime;
 
 	switch (key)
 	{
@@ -218,6 +232,24 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int actions, int mod
 			break;
 		case GLFW_KEY_D:
 			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+			break;
+		case GLFW_KEY_LEFT_SHIFT:
+			cameraPos += cameraUp * cameraSpeed;
+			break;
+		case GLFW_KEY_LEFT_CONTROL:
+			cameraPos -= cameraUp * cameraSpeed;
+			break;
+		case GLFW_KEY_1:
+			if (action == 1) {
+				wireframe = !wireframe;
+				wireframe ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			}
+			break;
+		case GLFW_KEY_2:
+			if (action == 1) {
+				captureMouse = !captureMouse;
+				captureMouse ? glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED) : glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			}
 			break;
 	}
 }
