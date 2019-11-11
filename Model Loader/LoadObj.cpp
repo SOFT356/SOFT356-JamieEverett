@@ -25,17 +25,17 @@ mtlData processMaterialData(std::string path, std::string currMaterialName);
 
 ///////////////////////////////////////////////////
 // Global variables
-std::vector<mesh> meshCollection; // Collection of all meshes to be returned
+std::vector<Mesh> meshCollection; // Collection of all meshes to be returned
 
 
-std::vector<mesh> loadObj(const std::string path) // Model.obj filepath
+std::vector<Mesh> loadObj(const std::string path) // Model.obj filepath
 {
 	std::vector<glm::vec3> tmpVertices;
 	std::vector<glm::vec2> tmpUvs;
 	std::vector<glm::vec3> tmpNormals;
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 
-	mesh theMesh;
+	Mesh theMesh;
 
 	///////////////////////////////////////////////////
 	// 1. Read file
@@ -160,7 +160,7 @@ void addMeshToCollection(std::vector<glm::vec3> tmpVertices,
 	std::string path,
 	std::string currMaterialName)
 {
-	mesh mesh;
+	Mesh mesh;
 	mesh.path = path.substr(0, path.find_last_of("\\/"));
 	mesh.materialName = currMaterialName;
 	mesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
