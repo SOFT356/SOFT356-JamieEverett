@@ -13,7 +13,7 @@ void addMeshToCollection(std::vector<glm::vec3> tmpVertices,
 	std::string path,
 	std::string currMaterialName);
 
-objData processObjectData(
+ObjData processObjectData(
 	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpNormals,
@@ -21,7 +21,7 @@ objData processObjectData(
 	std::vector<unsigned int>& uvIndices,
 	std::vector<unsigned int>& normalIndices);
 
-mtlData processMaterialData(std::string path, std::string currMaterialName);
+MtlData processMaterialData(std::string path, std::string currMaterialName);
 
 ///////////////////////////////////////////////////
 // Global variables
@@ -48,7 +48,7 @@ std::vector<Mesh> loadObj(const std::string path) // Model.obj filepath
 			// only read strings if file is in plaintext encoding
 
 			// store the current file position
-			int filePos = objFile.tellg();
+			auto filePos = objFile.tellg();
 			// peek ahead one line and store its value
 			std::getline(objFile, linePeek);
 			// jump back to the line we started on
@@ -57,11 +57,9 @@ std::vector<Mesh> loadObj(const std::string path) // Model.obj filepath
 			///////////////////////////////////////////////////
 			// 3. Create data structures
 			std::string objDataType = line.substr(0, line.find(" "));
-			//std::getline(objFile, linePeek);
 
 			if (objDataType == "usemtl") {
 				currMaterialName = line.substr(line.find(" ") + 1, line.length());
-				auto youWillStop = "here";
 			}
 
 			if (objDataType == "v") {
@@ -169,7 +167,7 @@ void addMeshToCollection(std::vector<glm::vec3> tmpVertices,
 }
 
 
-objData processObjectData(
+ObjData processObjectData(
 	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpNormals,
@@ -179,7 +177,7 @@ objData processObjectData(
 {
 	///////////////////////////////////////////////////
 	// Process data
-	objData objData;
+	ObjData objData;
 
 	// Process Vertices
 	for (unsigned int i = 0; i < vertexIndices.size(); i++) {
@@ -210,10 +208,10 @@ objData processObjectData(
 }
 
 
-mtlData processMaterialData(std::string path, std::string currMaterialName) {
+MtlData processMaterialData(std::string path, std::string currMaterialName) {
 	///////////////////////////////////////////////////
 	// Process data
-	mtlData mtlData;
+	MtlData mtlData;
 	bool targetMaterial = false;
 
 	std::string line;

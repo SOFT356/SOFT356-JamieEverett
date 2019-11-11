@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="LoadObj.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
@@ -167,6 +168,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="LoadObj.h" />
     <ClInclude Include="ModelLoader.h" />

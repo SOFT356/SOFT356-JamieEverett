@@ -1,8 +1,8 @@
-#define STB_IMAGE_IMPLEMENTATION
-
 #include "ModelLoader.h"
 #include "LoadObj.h"
 #include "Shader.h"
+
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 
@@ -39,14 +39,14 @@ struct displayObj {
 
 ///////////////////////////////////////////////////
 // Forward Declarations
-void display(std::vector<mesh> meshVector);
+void display(std::vector<Mesh> meshVector);
 
 void processInput(GLFWwindow* window);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName);
-displayObj displayInit(std::vector<mesh> meshVector);
+displayObj displayInit(std::vector<Mesh> meshVector);
 void onWindowResize(GLFWwindow* window, int width, int height);
 void printWelcomeAscii();
 
@@ -98,7 +98,8 @@ int main()
 	std::cout << "(press 'Escape' to close an open model)" << std::endl;
 	std::string modelPath; std::cin >> modelPath;
 	*/
-	std::string modelPath = R"(C:\Users\jeverett\Downloads\Test Files (Model Loader)-20191111\Creeper-obj\creeper.obj)";
+	std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\Creeper-obj\creeper.obj)";
+	//std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\LowPolyBoat-obj\low_poly_boat.obj)";
 
 	///////////////////////////////////////////////////
 	// Read Model
@@ -106,7 +107,7 @@ int main()
 	std::smatch fileExtension;
 	std::regex_search(modelPath, fileExtension, pattern);
 	
-	std::vector<mesh> meshVector;
+	std::vector<Mesh> meshVector;
 
 	if (fileExtension[0] == ".obj") {
 		meshVector = loadObj(modelPath);
@@ -140,7 +141,7 @@ int main()
 }
 
 
-void display(std::vector<mesh> meshVector) {
+void display(std::vector<Mesh> meshVector) {
 	glfwInit();
 
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, DEFAULT_SCR_TITLE, NULL, NULL);
@@ -319,7 +320,7 @@ void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName)
 }
 
 
-displayObj displayInit(std::vector<mesh> meshVector) {
+displayObj displayInit(std::vector<Mesh> meshVector) {
 	// add textures
 	unsigned int texture;
 	glGenTextures(1, &texture);

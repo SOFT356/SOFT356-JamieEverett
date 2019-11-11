@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "Mesh.h"
+
 
 std::vector<Mesh> loadObj(const std::string path);
 
