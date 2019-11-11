@@ -39,23 +39,14 @@ struct displayObj {
 
 ///////////////////////////////////////////////////
 // Forward Declarations
-bool loadObj(
-	const std::string path,
-	std::vector<glm::vec3>& vertices,
-	std::vector<glm::vec2>& uvs, 
-	std::vector<glm::vec3>& normals);
-
-void display(
-	std::vector<glm::vec3>& vertices,
-	std::vector<glm::vec2>& uvs,
-	std::vector<glm::vec3>& normals);
+void display(std::vector<mesh> meshVector);
 
 void processInput(GLFWwindow* window);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName);
-displayObj displayInit(std::vector<glm::vec3> vertices, std::vector<glm::vec2> uvs, std::vector<glm::vec3> normals);
+displayObj displayInit(std::vector<mesh> meshVector);
 void onWindowResize(GLFWwindow* window, int width, int height);
 void printWelcomeAscii();
 
@@ -115,12 +106,10 @@ int main()
 	std::smatch fileExtension;
 	std::regex_search(modelPath, fileExtension, pattern);
 	
-	std::vector<glm::vec3> vertices, normals;
-	std::vector<glm::vec2> uvs;
+	std::vector<mesh> meshVector;
 
 	if (fileExtension[0] == ".obj") {
-		if (!loadObj(modelPath, vertices, uvs, normals))
-			exit(EXIT_FAILURE);
+		meshVector = loadObj(modelPath);
 	} 
 	else if (fileExtension[0] == ".dae") {
 		// TODO: load a .dae file
@@ -147,19 +136,11 @@ int main()
 		main();
 	}
 
-	display(vertices, uvs, normals);
-
-	// BEGIN DEBUG
-	system("pause");
-	// END DEBUG
+	display(meshVector); // TODO: make this compatable with the DAE loader return
 }
 
 
-void display(
-	std::vector<glm::vec3>& vertices,
-	std::vector<glm::vec2>& uvs,
-	std::vector<glm::vec3>& normals)
-{
+void display(std::vector<mesh> meshVector) {
 	glfwInit();
 
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, DEFAULT_SCR_TITLE, NULL, NULL);
@@ -167,7 +148,7 @@ void display(
 	glfwSetFramebufferSizeCallback(window, onWindowResize);
 
 	// Attach input callbacks
-	glfwSetKeyCallback(window, keyCallback);
+	glfwSetKeyCallback(window, keyCallback); // only used to check key releases
 	glfwSetCursorPosCallback(window, mouseCallback);
 	glfwSetScrollCallback(window, scrollCallback);
 
@@ -181,7 +162,7 @@ void display(
 	// Build and compile Shader program
 	Shader shaders("shaders/shader.vs", "shaders/shader.fs");
 
-	displayObj displayVals = displayInit(vertices, uvs, normals);
+	displayObj displayVals = displayInit(meshVector);
 	
 	while (!glfwWindowShouldClose(window))
 	{
@@ -220,7 +201,7 @@ void display(
 		glUniform1i(glGetUniformLocation(shaders.ID, "theTexture"), 0);
 
 		glBindVertexArray(displayVals.VAO);
-		glDrawArrays(GL_TRIANGLES, 0, (GLint)vertices.size());
+		glDrawArrays(GL_TRIANGLES, 0, (GLint)meshVector[0].objData.vertices.size());
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -338,10 +319,7 @@ void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName)
 }
 
 
-displayObj displayInit(std::vector<glm::vec3> vertices,
-	std::vector<glm::vec2> uvs,
-	std::vector<glm::vec3> normals
-) {
+displayObj displayInit(std::vector<mesh> meshVector) {
 	// add textures
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -356,14 +334,15 @@ displayObj displayInit(std::vector<glm::vec3> vertices,
 	stbi_set_flip_vertically_on_load(true);
 
 	GLint width, height, nrChannels;
-	unsigned char* data = stbi_load("Test\ Files/Creeper-obj/Texture.png", &width, &height, &nrChannels, 0);
+	std::string texturePath = meshVector[0].path + "\\" + meshVector[0].mtlData.map_d;
+	unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
 
 	if (data) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else {
-		std::cout << "ERROR->" << __FUNCTION__ << ": Failed to load texture" << std::endl;
+		std::cout << "ERROR->" << __FUNCTION__ << ": Failed to load texture (texture file may not exist)" << std::endl;
 	}
 
 	stbi_image_free(data);
@@ -378,21 +357,21 @@ displayObj displayInit(std::vector<glm::vec3> vertices,
 
 	// position buffer
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[TRIANGLES]);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, meshVector[0].objData.vertices.size() * sizeof(glm::vec3), &meshVector[0].objData.vertices[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
 
 	// colour buffer
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[COLOUR]);
-	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, meshVector[0].objData.normals.size() * sizeof(glm::vec3), &meshVector[0].objData.normals[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(1);
 
 	// texture buffer
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[TEXTURES]);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, meshVector[0].objData.uvs.size() * sizeof(glm::vec2), &meshVector[0].objData.uvs[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(2);
