@@ -65,11 +65,11 @@ GLuint buffers[1];
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-float lastX = 400;
-float lastY = 300;
-float yaw = -90.0f;
-float pitch = 0.0f;
-float fov = 45.0f;
+double lastX = 400;
+double lastY = 300;
+double yaw = -90.0f;
+double pitch = 0.0f;
+double fov = 45.0f;
 bool firstMouse = true;
 WindowStatus windowStatus = WindowStatus::FOCUSED;
 
@@ -168,7 +168,7 @@ void display(std::vector<Mesh> meshVector) {
 	while (!glfwWindowShouldClose(window))
 	{
 		// Frame timer logic
-		float currFrame = glfwGetTime();
+		float currFrame = (float)glfwGetTime();
 		deltaTime = currFrame - lastFrame;
 		lastFrame = currFrame;
 
@@ -189,7 +189,7 @@ void display(std::vector<Mesh> meshVector) {
 		//model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
-		projection = glm::perspective(glm::radians(fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
 
 		// bind textures
 		glBindTexture(GL_TEXTURE_2D, displayVals.texture);
@@ -275,8 +275,8 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
 	}
 
 	// Calculate mouse offset
-	float xOffset = xPos - lastX;
-	float yOffset = lastY - yPos;
+	double xOffset = xPos - lastX;
+	double yOffset = lastY - yPos;
 	lastX = xPos;
 	lastY = yPos;
 
@@ -296,9 +296,9 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
 
 	// Calculate direction vector
 	glm::vec3 cameraDir;
-	cameraDir.x = cos(glm::radians(pitch)) *  cos(glm::radians(yaw));
-	cameraDir.y = sin(glm::radians(pitch));
-	cameraDir.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+	cameraDir.x = cos(glm::radians((float)pitch)) *  cos(glm::radians((float)yaw));
+	cameraDir.y = sin(glm::radians((float)pitch));
+	cameraDir.z = cos(glm::radians((float)pitch)) * sin(glm::radians((float)yaw));
 	cameraFront = glm::normalize(cameraDir);
 }
 
