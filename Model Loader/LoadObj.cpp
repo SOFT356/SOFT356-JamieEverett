@@ -158,12 +158,12 @@ void addMeshToCollection(std::vector<glm::vec3> tmpVertices,
 	std::string path,
 	std::string currMaterialName)
 {
-	Mesh mesh;
-	mesh.path = path.substr(0, path.find_last_of("\\/"));
-	mesh.materialName = currMaterialName;
-	mesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
-	mesh.mtlData = processMaterialData(path, currMaterialName);
-	meshCollection.push_back(mesh);
+	Mesh tempMesh;
+	tempMesh.path = path.substr(0, path.find_last_of("\\/"));
+	tempMesh.materialName = currMaterialName;
+	tempMesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
+	tempMesh.mtlData = processMaterialData(path, currMaterialName);
+	meshCollection.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData));
 }
 
 

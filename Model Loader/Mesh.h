@@ -3,6 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 #include "Shader.h"
@@ -10,6 +13,13 @@
 
 ///////////////////////////////////////////////////
 // DataTypes
+enum BufferValue {
+	TRIANGLES,
+	COLOUR,
+	TEXTURES,
+	NUM_BUFFERS = 3
+};
+
 struct ObjData {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
@@ -29,6 +39,11 @@ struct MtlData {
 	std::string map_d;							// Alpha texture map
 };
 
+struct Texture {
+	unsigned int id;
+	std::string type;
+};
+
 
 class Mesh {
 public:
@@ -36,6 +51,7 @@ public:
 	std::string materialName;
 	ObjData objData;
 	MtlData mtlData;
+	std::vector<Texture> textures;
 
 	Mesh();
 	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData);
@@ -43,9 +59,9 @@ public:
 	void draw(Shader shader);
 private:
 	unsigned int VAO = NULL;
-	unsigned int VBO = NULL;
+	GLuint buffers[];
+
 	void setupMesh();
 };
-
 
 #endif

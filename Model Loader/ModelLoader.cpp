@@ -2,9 +2,6 @@
 #include "LoadObj.h"
 #include "Shader.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 
 /*******************************************************
 FILETYPES:
@@ -19,13 +16,6 @@ FILETYPES:
 
 ///////////////////////////////////////////////////
 // DataTypes
-enum BufferValue { 
-	TRIANGLES,
-	COLOUR,
-	TEXTURES,
-	NUM_BUFFERS = 3
-};
-
 enum class WindowStatus {
 	FOCUSED,
 	NOT_FOCUSED
@@ -39,14 +29,13 @@ struct displayObj {
 
 ///////////////////////////////////////////////////
 // Forward Declarations
-void display(std::vector<Mesh> meshVector);
+void display(GLFWwindow* window, std::string modelPath, std::vector<Mesh> meshVector);
 
 void processInput(GLFWwindow* window);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName);
-displayObj displayInit(std::vector<Mesh> meshVector);
 void onWindowResize(GLFWwindow* window, int width, int height);
 void printWelcomeAscii();
 
@@ -57,9 +46,6 @@ void printWelcomeAscii();
 const char* DEFAULT_SCR_TITLE = "JE - ModelLoader";
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
-
-// textures
-GLuint buffers[1];
 
 // camera
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -109,6 +95,15 @@ int main()
 	
 	std::vector<Mesh> meshVector;
 
+	// Init opengl
+	glfwInit();
+
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, DEFAULT_SCR_TITLE, NULL, NULL);
+	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, onWindowResize);
+
+	glewInit();
+
 	if (fileExtension[0] == ".obj") {
 		meshVector = loadObj(modelPath);
 	} 
@@ -134,26 +129,20 @@ int main()
 		std::cout << "  - .obj" << std::endl;
 		std::cout << std::endl;
 
+		glfwTerminate();
+
 		main();
 	}
 
-	display(meshVector); // TODO: make this compatable with the DAE loader return
+	display(window, modelPath, meshVector); // TODO: make this compatable with the DAE loader return
 }
 
 
-void display(std::vector<Mesh> meshVector) {
-	glfwInit();
-
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, DEFAULT_SCR_TITLE, NULL, NULL);
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, onWindowResize);
-
+void display(GLFWwindow* window, std::string modelPath, std::vector<Mesh> meshVector) {
 	// Attach input callbacks
 	glfwSetKeyCallback(window, keyCallback); // only used to check key releases
 	glfwSetCursorPosCallback(window, mouseCallback);
 	glfwSetScrollCallback(window, scrollCallback);
-
-	glewInit();
 
 	// Record mouse input
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -163,7 +152,10 @@ void display(std::vector<Mesh> meshVector) {
 	// Build and compile Shader program
 	Shader shaders("shaders/shader.vs", "shaders/shader.fs");
 
-	displayObj displayVals = displayInit(meshVector);
+	// Setup buffers
+	for (int i = 0; i < meshVector.size(); i++)	{
+		meshVector[i].draw(shaders);
+	}
 	
 	while (!glfwWindowShouldClose(window))
 	{
@@ -191,9 +183,6 @@ void display(std::vector<Mesh> meshVector) {
 
 		projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
 
-		// bind textures
-		glBindTexture(GL_TEXTURE_2D, displayVals.texture);
-
 		// Select shaders
 		shaders.use();
 		setUniformMatrix(shaders, model, "model");
@@ -201,15 +190,16 @@ void display(std::vector<Mesh> meshVector) {
 		setUniformMatrix(shaders, projection, "projection");
 		glUniform1i(glGetUniformLocation(shaders.ID, "theTexture"), 0);
 
-		glBindVertexArray(displayVals.VAO);
+		for (unsigned int i = 0; i < meshVector.size(); i++) {
+			meshVector[i].draw(shaders);
+		}
 		glDrawArrays(GL_TRIANGLES, 0, (GLint)meshVector[0].objData.vertices.size());
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	glDeleteVertexArrays(1, &displayVals.VAO);
-	glDeleteBuffers(BufferValue::NUM_BUFFERS, buffers);
+	//glDeleteBuffers(BufferValue::NUM_BUFFERS, buffers);
 
 	glfwTerminate();
 
@@ -317,72 +307,6 @@ void scrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
 void setUniformMatrix(Shader shaders, glm::mat4 matrix, const char* uniformName) {
 	unsigned int loc = glGetUniformLocation(shaders.ID, uniformName);
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
-}
-
-
-displayObj displayInit(std::vector<Mesh> meshVector) {
-	// add textures
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	// texture params
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	stbi_set_flip_vertically_on_load(true);
-
-	GLint width, height, nrChannels;
-	std::string texturePath = meshVector[0].path + "\\" + meshVector[0].mtlData.map_d;
-	unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
-
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		std::cout << "ERROR->" << __FUNCTION__ << ": Failed to load texture (texture file may not exist)" << std::endl;
-	}
-
-	stbi_image_free(data);
-
-	// setup buffers
-	unsigned int VAO;
-
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	glGenBuffers(BufferValue::NUM_BUFFERS, buffers);
-
-	// position buffer
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[TRIANGLES]);
-	glBufferData(GL_ARRAY_BUFFER, meshVector[0].objData.vertices.size() * sizeof(glm::vec3), &meshVector[0].objData.vertices[0], GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glEnableVertexAttribArray(0);
-
-	// colour buffer
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[COLOUR]);
-	glBufferData(GL_ARRAY_BUFFER, meshVector[0].objData.normals.size() * sizeof(glm::vec3), &meshVector[0].objData.normals[0], GL_STATIC_DRAW);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glEnableVertexAttribArray(1);
-
-	// texture buffer
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[TEXTURES]);
-	glBufferData(GL_ARRAY_BUFFER, meshVector[0].objData.uvs.size() * sizeof(glm::vec2), &meshVector[0].objData.uvs[0], GL_STATIC_DRAW);
-
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glEnableVertexAttribArray(2);
-
-	// set return values
-	displayObj vals;
-	vals.VAO = VAO;
-	vals.texture = texture;
-
-	return vals;
 }
 
 
