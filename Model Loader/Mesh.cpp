@@ -29,6 +29,7 @@ void Mesh::draw(Shader shader) {
 void Mesh::setupMesh() {
 	///////////////////////////////////////////////////////////
 	// Setup Textures
+        std::vector(Texture) textures;
 
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -42,6 +43,7 @@ void Mesh::setupMesh() {
 
 	stbi_set_flip_vertically_on_load(true);
 
+        // for each map texture (3 or 4) set it up and add to the texture vector 
 	GLint width, height, nrChannels;
 	std::string texturePath = path + "\\" + mtlData.map_d;
 	unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
