@@ -20,12 +20,6 @@ enum VertexBufferValue {
 	NUM_VERTEX_BUFFERS
 };
 
-enum TextureBufferValue {
-	MAP_D,
-	MAP_KD,
-	NUM_TEXTURE_BUFFERS
-};
-
 struct ObjData {
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
@@ -41,9 +35,16 @@ struct MtlData {
 	float Ni = NULL;							// Optical density (index of refraction)
 	float d = NULL;								// Dissolved value
 	int illum = NULL;							// Illumination model
-	std::string map_Kd;							// Diffuse texture map
 	std::string map_d;							// Alpha texture map
+	std::string map_Kd;							// Diffuse texture map
 };
+
+const std::vector<std::string> textureTypes = {
+	"map_d",
+	"map_Kd"	
+};
+
+const int numTextureTypes = 2;
 
 struct Texture {
 	unsigned int id;
@@ -55,8 +56,10 @@ class Mesh {
 public:
 	std::string path;
 	std::string materialName;
+
 	ObjData objData;
 	MtlData mtlData;
+
 	std::vector<Texture> textures;
 	unsigned int VAO = NULL;
 
@@ -66,9 +69,9 @@ public:
 	void draw(Shader shader);
 private:
 	GLuint vertexBuffers[NUM_VERTEX_BUFFERS];
-	GLuint textureBuffers[NUM_TEXTURE_BUFFERS];
+	GLuint textureBuffers[numTextureTypes];
 
-	void setupMesh();
+	void setupMesh(std::vector<Texture>& textures);
 };
 
 #endif

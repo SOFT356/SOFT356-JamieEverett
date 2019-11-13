@@ -85,8 +85,8 @@ int main()
 	std::cout << "(press 'Escape' to close an open model)" << std::endl;
 	std::string modelPath; std::cin >> modelPath;
 	*/
-	std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\Creeper-obj\creeper.obj)";
-	//std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\LowPolyBoat-obj\low_poly_boat.obj)";
+	//std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\Creeper-obj\creeper.obj)";
+	std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\LowPolyBoat-obj\low_poly_boat.obj)";
 
 	///////////////////////////////////////////////////
 	// Read Model
