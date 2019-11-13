@@ -1,7 +1,10 @@
 #include "ModelLoader.h"
 #include "LoadObj.h"
 #include "Model.h"
+#include "Mesh.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 ///////////////////////////////////////////////////
 // Forward Declarations
@@ -24,6 +27,8 @@ ObjData processObjectData(
 	std::vector<unsigned int>& normalIndices);
 
 MtlData processMaterialData(std::string path, std::string currMaterialName);
+
+std::vector<Texture> processTextures(MtlData mtlData, std::string path);
 
 
 Model loadObj(Model& model) // Model.obj filepath
@@ -162,7 +167,8 @@ void addMeshToCollection(Model& model,
 	tempMesh.materialName = currMaterialName;
 	tempMesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
 	tempMesh.mtlData = processMaterialData(path, currMaterialName);
-	model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData));
+	tempMesh.textures = processTextures(tempMesh.mtlData, tempMesh.path);
+	model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData, tempMesh.textures));
 }
 
 
@@ -286,4 +292,58 @@ MtlData processMaterialData(std::string path, std::string currMaterialName) {
 
 	// target is the last material in the file
 	return mtlData;
+}
+
+std::vector<Texture> processTextures(MtlData mtlData, std::string path) {
+	///////////////////////////////////////////////////////////
+	// Setup Textures (if a texture file exists)
+	std::vector<Texture> textures;
+	GLuint textureBuffers[numTextureTypes];
+
+	if (!mtlData.map_d.empty() && !mtlData.map_Kd.empty()) {
+		glGenTextures(textureTypes.size(), textureBuffers);
+
+		for (int i = 0; i < textureTypes.size(); i++) {
+			// start at map_d and iterate over all texture values
+			glBindTexture(GL_TEXTURE_2D, textureBuffers[i]);
+
+			// texture params
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			stbi_set_flip_vertically_on_load(true);
+
+			GLint width, height, nrChannels;
+			std::string texturePath = path + "\\";
+
+			if (textureTypes[i] == "texture_alpha") {
+				texturePath += mtlData.map_d;
+			}
+			else if (textureTypes[i] == "texture_diffuse") {
+				texturePath += mtlData.map_Kd;
+			}
+
+			unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
+
+			if (data) {
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+				glGenerateMipmap(GL_TEXTURE_2D);
+
+				Texture texture;
+				texture.id = i;
+				texture.type = textureTypes[i];
+
+				textures.push_back(texture);
+			}
+			else {
+				std::cout << "ERROR->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
+			}
+
+			stbi_image_free(data);
+		}
+	}
+
+	return textures;
 }

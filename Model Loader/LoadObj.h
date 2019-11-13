@@ -13,6 +13,15 @@
 #include "Model.h"
 
 
+const std::vector<std::string> textureTypes = {
+	"texture_alpha",	// map_d
+	"texture_diffuse",	// map_Kd
+	"texture_specular"	// map_Ks
+};
+
+const int numTextureTypes = 3;
+
+
 Model loadObj(Model& model);
 
 

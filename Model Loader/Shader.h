@@ -16,7 +16,10 @@ public:
 
 	Shader();
 	Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
+	
 	void use();
+	void setVec3(const std::string &name, glm::vec3 &value);
+	void setFloat(const std::string &name, float value);
 private:
 	void compileShader(unsigned int& shader, const char* shaderCode);
 };

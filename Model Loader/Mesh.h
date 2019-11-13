@@ -39,13 +39,6 @@ struct MtlData {
 	std::string map_Kd;							// Diffuse texture map
 };
 
-const std::vector<std::string> textureTypes = {
-	"map_d",
-	"map_Kd"	
-};
-
-const int numTextureTypes = 2;
-
 struct Texture {
 	unsigned int id;
 	std::string type;
@@ -63,16 +56,15 @@ public:
 	std::vector<Texture> textures;
 
 	Mesh();
-	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData);
+	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, std::vector<Texture> textures);
 
 	void draw(Shader shader);
 private:
 	unsigned int VAO = NULL;
 
 	GLuint vertexBuffers[NUM_VERTEX_BUFFERS];
-	GLuint textureBuffers[numTextureTypes];
 
-	void setupMesh(std::vector<Texture>& textures);
+	void setupMesh();
 };
 
 #endif

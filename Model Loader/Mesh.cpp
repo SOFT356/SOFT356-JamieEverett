@@ -1,21 +1,18 @@
 #include "Mesh.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 
 Mesh::Mesh() {
 
 }
 
-Mesh::Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData) {
+Mesh::Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, std::vector<Texture> textures) {
 	this->path = path;
 	this->materialName = materialName;
 	this->objData = objData;
 	this->mtlData = mtlData;
+	this->textures = textures;
 
-	std::vector<Texture> textures;
-
-	setupMesh(textures);
+	setupMesh();
 }
 
 void Mesh::draw(Shader shader) {
@@ -23,6 +20,12 @@ void Mesh::draw(Shader shader) {
 	unsigned int specularNr = 1;
 	unsigned int normalNr	= 1;
 	unsigned int heightNr	= 1;
+
+	if (textures.empty())	
+		glUniform1i(glGetUniformLocation(shader.ID, "hasTexture"), false);
+	else 
+		glUniform1i(glGetUniformLocation(shader.ID, "hasTexture"), true);
+	
 
 	for (unsigned int i = 0; i < textures.size(); i++)	{
 		glActiveTexture(GL_TEXTURE0 + i);
@@ -33,14 +36,19 @@ void Mesh::draw(Shader shader) {
 			number = std::to_string(diffueNr++);
 		else if (type == "texture_specular")
 			number = std::to_string(specularNr++);
-		else if (type == "texture_normal")
-			number = std::to_string(normalNr++);
+		/*else if (type == "texture_normal")
+			number = std::to_string(normalNr++);*/
 
 		glUniform1i(glGetUniformLocation(shader.ID, (type + number).c_str()), i);
 		
 		// bind the texture
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
+
+	shader.setVec3("material.ambient", mtlData.Ka);
+	shader.setVec3("material.diffuse", mtlData.Kd);
+	shader.setVec3("material.specular", mtlData.Ks);
+	shader.setFloat("material.shininess", mtlData.Ni);
 
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, objData.vertices.size());
@@ -50,56 +58,7 @@ void Mesh::draw(Shader shader) {
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void Mesh::setupMesh(std::vector<Texture>& textures) {
-	///////////////////////////////////////////////////////////
-	// Setup Textures (if a texture file exists)
-
-	if (!mtlData.map_d.empty() && !mtlData.map_Kd.empty()) {
-		glGenTextures(textureTypes.size(), textureBuffers);
-
-		for (int i = 0; i < textureTypes.size(); i++) {
-			// start at map_d and iterate over all texture values
-			glBindTexture(GL_TEXTURE_2D, textureBuffers[i]);
-
-			// texture params
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			stbi_set_flip_vertically_on_load(true);
-
-			GLint width, height, nrChannels;
-			std::string texturePath = path + "\\";
-
-			if (textureTypes[i] == "map_d") {
-				texturePath += mtlData.map_d;
-			}
-			else if (textureTypes[i] == "map_Kd") {
-				texturePath += mtlData.map_Kd;
-			}
-
-			unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
-
-			if (data) {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-				glGenerateMipmap(GL_TEXTURE_2D);
-
-				Texture texture;
-				texture.id = i;
-				texture.type = textureTypes[i];
-
-				textures.push_back(texture);
-			}
-			else {
-				std::cout << "ERROR->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
-			}
-
-			stbi_image_free(data);
-		}
-	}
-
-
+void Mesh::setupMesh() {
 	///////////////////////////////////////////////////////////
 	// Setup Buffers
 	glGenVertexArrays(1, &VAO);

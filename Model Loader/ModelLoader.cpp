@@ -175,7 +175,7 @@ void display(GLFWwindow* window, Model model) {
 		float angleDelta = (float)glfwGetTime() * 0.4f;
 
 		//modelTrans = glm::rotate(modelTrans, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
-		modelTrans = glm::scale(modelTrans, glm::vec3(0.005f, 0.005f, 0.005f));
+		//modelTrans = glm::scale(modelTrans, glm::vec3(0.005f, 0.005f, 0.005f));
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
