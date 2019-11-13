@@ -13,11 +13,17 @@
 
 ///////////////////////////////////////////////////
 // DataTypes
-enum BufferValue {
+enum VertexBufferValue {
 	TRIANGLES,
 	COLOUR,
 	TEXTURES,
-	NUM_BUFFERS = 3
+	NUM_VERTEX_BUFFERS
+};
+
+enum TextureBufferValue {
+	MAP_D,
+	MAP_KD,
+	NUM_TEXTURE_BUFFERS
 };
 
 struct ObjData {
@@ -52,14 +58,15 @@ public:
 	ObjData objData;
 	MtlData mtlData;
 	std::vector<Texture> textures;
+	unsigned int VAO = NULL;
 
 	Mesh();
-	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData);
+	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, unsigned int VAO);
 
 	void draw(Shader shader);
 private:
-	unsigned int VAO = NULL;
-	GLuint buffers[];
+	GLuint vertexBuffers[NUM_VERTEX_BUFFERS];
+	GLuint textureBuffers[NUM_TEXTURE_BUFFERS];
 
 	void setupMesh();
 };

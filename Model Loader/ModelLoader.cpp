@@ -1,6 +1,7 @@
 #include "ModelLoader.h"
 #include "LoadObj.h"
 #include "Shader.h"
+#include "Model.h"
 
 
 /*******************************************************
@@ -29,7 +30,7 @@ struct displayObj {
 
 ///////////////////////////////////////////////////
 // Forward Declarations
-void display(GLFWwindow* window, std::string modelPath, std::vector<Mesh> meshVector);
+void display(GLFWwindow* window, Model model);
 
 void processInput(GLFWwindow* window);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -92,8 +93,6 @@ int main()
 	std::regex pattern(".[a-z0-9]+$", std::regex_constants::icase);
 	std::smatch fileExtension;
 	std::regex_search(modelPath, fileExtension, pattern);
-	
-	std::vector<Mesh> meshVector;
 
 	// Init opengl
 	glfwInit();
@@ -104,8 +103,11 @@ int main()
 
 	glewInit();
 
+	Model model;
+
 	if (fileExtension[0] == ".obj") {
-		meshVector = loadObj(modelPath);
+		model.path = modelPath;
+		model = loadObj(model);
 	} 
 	else if (fileExtension[0] == ".dae") {
 		// TODO: load a .dae file
@@ -134,11 +136,11 @@ int main()
 		main();
 	}
 
-	display(window, modelPath, meshVector); // TODO: make this compatable with the DAE loader return
+	display(window, model); // TODO: make this compatable with the DAE loader return
 }
 
 
-void display(GLFWwindow* window, std::string modelPath, std::vector<Mesh> meshVector) {
+void display(GLFWwindow* window, Model model) {
 	// Attach input callbacks
 	glfwSetKeyCallback(window, keyCallback); // only used to check key releases
 	glfwSetCursorPosCallback(window, mouseCallback);
@@ -151,11 +153,6 @@ void display(GLFWwindow* window, std::string modelPath, std::vector<Mesh> meshVe
 
 	// Build and compile Shader program
 	Shader shaders("shaders/shader.vs", "shaders/shader.fs");
-
-	// Setup buffers
-	for (int i = 0; i < meshVector.size(); i++)	{
-		meshVector[i].draw(shaders);
-	}
 	
 	while (!glfwWindowShouldClose(window))
 	{
@@ -171,29 +168,27 @@ void display(GLFWwindow* window, std::string modelPath, std::vector<Mesh> meshVe
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Model transformations
-		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 modelTrans = glm::mat4(1.0f);
 		glm::mat4 view = glm::mat4(1.0f);
 		glm::mat4 projection = glm::mat4(1.0f);
 
 		float angleDelta = (float)glfwGetTime() * 0.4f;
 
-		//model = glm::rotate(model, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
-		//model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
+		//modelTrans = glm::rotate(modelTrans, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
+		//modelTrans = glm::scale(modelTrans, glm::vec3(0.005f, 0.005f, 0.005f));
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
 
 		// Select shaders
 		shaders.use();
-		setUniformMatrix(shaders, model, "model");
+		setUniformMatrix(shaders, modelTrans, "model");
 		setUniformMatrix(shaders, view, "view");
 		setUniformMatrix(shaders, projection, "projection");
 		glUniform1i(glGetUniformLocation(shaders.ID, "theTexture"), 0);
-
-		for (unsigned int i = 0; i < meshVector.size(); i++) {
-			meshVector[i].draw(shaders);
-		}
-		glDrawArrays(GL_TRIANGLES, 0, (GLint)meshVector[0].objData.vertices.size());
+		
+		// Draw the model
+		model.draw(shaders);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

@@ -3,6 +3,8 @@
 int success;
 char infoLog[512];
 
+Shader::Shader() {};
+
 Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
 	///////////////////////////////////////////////////////
 	// Read shader files

@@ -10,9 +10,10 @@
 #include <vector>
 
 #include "Mesh.h"
+#include "Model.h"
 
 
-std::vector<Mesh> loadObj(const std::string path);
+Model loadObj(Model& model);
 
 
 #endif

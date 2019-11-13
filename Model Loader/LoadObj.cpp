@@ -1,10 +1,12 @@
 #include "ModelLoader.h"
 #include "LoadObj.h"
+#include "Model.h"
 
 
 ///////////////////////////////////////////////////
 // Forward Declarations
-void addMeshToCollection(std::vector<glm::vec3> tmpVertices,
+void addMeshToCollection(Model& model,
+	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpNormals,
 	std::vector<unsigned int>& vertexIndices,
@@ -23,12 +25,8 @@ ObjData processObjectData(
 
 MtlData processMaterialData(std::string path, std::string currMaterialName);
 
-///////////////////////////////////////////////////
-// Global variables
-std::vector<Mesh> meshCollection; // Collection of all meshes to be returned
 
-
-std::vector<Mesh> loadObj(const std::string path) // Model.obj filepath
+Model loadObj(Model& model) // Model.obj filepath
 {
 	std::vector<glm::vec3> tmpVertices;
 	std::vector<glm::vec2> tmpUvs;
@@ -40,7 +38,7 @@ std::vector<Mesh> loadObj(const std::string path) // Model.obj filepath
 	///////////////////////////////////////////////////
 	// 1. Read file
 	std::string line, linePeek, currMaterialName;
-	std::ifstream objFile(path, std::ios::binary);
+	std::ifstream objFile(model.path, std::ios::binary);
 	if (objFile.is_open()) {
 		while (std::getline(objFile, line)) {
 			// TODO: 2. Validate correct format
@@ -132,7 +130,7 @@ std::vector<Mesh> loadObj(const std::string path) // Model.obj filepath
 			if (objDataType == "f") {
 				if (linePeek.find("usemtl") != -1 || linePeek.find("o ") != -1 || linePeek.empty()) {
 					// must be at the next mesh or at EOF -> create a new mesh with the stored data
-					addMeshToCollection(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices, path, currMaterialName);
+					addMeshToCollection(model, tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices, model.path, currMaterialName);
 				}
 			}
 		}
@@ -145,11 +143,12 @@ std::vector<Mesh> loadObj(const std::string path) // Model.obj filepath
 	///////////////////////////////////////////////////
 	// 5. Deallocate resources
 
-	return meshCollection;
+	return model;
 }
 
 
-void addMeshToCollection(std::vector<glm::vec3> tmpVertices,
+void addMeshToCollection(Model& model,
+	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpNormals,
 	std::vector<unsigned int>& vertexIndices,
@@ -163,7 +162,7 @@ void addMeshToCollection(std::vector<glm::vec3> tmpVertices,
 	tempMesh.materialName = currMaterialName;
 	tempMesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
 	tempMesh.mtlData = processMaterialData(path, currMaterialName);
-	meshCollection.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData));
+	model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData, model.VAO));
 }
 
 
