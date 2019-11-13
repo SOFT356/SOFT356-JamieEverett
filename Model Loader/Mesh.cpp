@@ -85,7 +85,7 @@ void Mesh::setupMesh(std::vector<Texture>& textures) {
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else {
-			std::cout << "ERROR->" << __FUNCTION__ << ": Failed to load texture (texture file may not exist)" << std::endl;
+			std::cout << "WARN->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
 		}
 
 		stbi_image_free(data);
