@@ -12,6 +12,7 @@ Mesh::Mesh(std::string path, std::string materialName, ObjData objData, MtlData 
 	this->materialName = materialName;
 	this->objData = objData;
 	this->mtlData = mtlData;
+	this->VAO = VAO;
 
 	std::vector<Texture> textures;
 
@@ -83,18 +84,18 @@ void Mesh::setupMesh(std::vector<Texture>& textures) {
 		if (data) {
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
+
+			Texture texture;
+			texture.id = i;
+			texture.type = textureTypes[i];
+
+			textures.push_back(texture);
 		}
 		else {
 			std::cout << "WARN->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
 		}
 
 		stbi_image_free(data);
-
-		Texture texture;
-		texture.id = i;
-		texture.type = textureTypes[i];
-
-		textures.push_back(texture);
 	}	
 
 
