@@ -2,7 +2,6 @@
 
 
 Model::Model() {
-	glGenVertexArrays(1, &VAO);
 }
 
 void Model::draw(Shader shader) {

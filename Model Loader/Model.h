@@ -4,14 +4,13 @@
 #include <vector>;
 
 #include "Mesh.h";
-#include "Shader.h"
+#include "Shader.h";
 
 class Model {
 public:
 	Shader shader;
 	std::string path;
 	std::vector<Mesh> meshes;
-	unsigned int VAO;
 
 	Model();
 

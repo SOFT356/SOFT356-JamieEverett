@@ -162,7 +162,7 @@ void addMeshToCollection(Model& model,
 	tempMesh.materialName = currMaterialName;
 	tempMesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
 	tempMesh.mtlData = processMaterialData(path, currMaterialName);
-	model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData, model.VAO));
+	model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData));
 }
 
 

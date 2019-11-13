@@ -7,12 +7,11 @@ Mesh::Mesh() {
 
 }
 
-Mesh::Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, unsigned int VAO) {
+Mesh::Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData) {
 	this->path = path;
 	this->materialName = materialName;
 	this->objData = objData;
 	this->mtlData = mtlData;
-	this->VAO = VAO;
 
 	std::vector<Texture> textures;
 
@@ -103,6 +102,7 @@ void Mesh::setupMesh(std::vector<Texture>& textures) {
 
 	///////////////////////////////////////////////////////////
 	// Setup Buffers
+	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
 	glGenBuffers(NUM_VERTEX_BUFFERS, vertexBuffers);

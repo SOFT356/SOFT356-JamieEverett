@@ -61,13 +61,14 @@ public:
 	MtlData mtlData;
 
 	std::vector<Texture> textures;
-	unsigned int VAO = NULL;
 
 	Mesh();
-	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, unsigned int VAO);
+	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData);
 
 	void draw(Shader shader);
 private:
+	unsigned int VAO = NULL;
+
 	GLuint vertexBuffers[NUM_VERTEX_BUFFERS];
 	GLuint textureBuffers[numTextureTypes];
 
