@@ -112,7 +112,6 @@ bool getModelPaths(std::vector<std::string>& modelPaths) {
 
 	int numModels;
 	std::cout << "Enter the number of models you wish to load" << std::endl;
-	std::cout << "(press 'Escape' to close the program at any point)" << std::endl;
 	std::cin >> numModels;
 	clearInput();
 	std::cout << std::endl;
