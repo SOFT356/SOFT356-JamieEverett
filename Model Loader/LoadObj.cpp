@@ -338,7 +338,7 @@ std::vector<Texture> processTextures(MtlData mtlData, std::string path) {
 				textures.push_back(texture);
 			}
 			else {
-				std::cout << "ERROR->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
+				std::cout << "WARN->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
 			}
 
 			stbi_image_free(data);

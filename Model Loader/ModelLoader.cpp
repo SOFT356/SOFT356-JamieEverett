@@ -34,7 +34,7 @@ bool getModelPaths(std::vector<std::string>& modelPaths);
 void clearInput();
 bool loadModels(std::vector<std::string>& modelPaths, std::vector<Model>& models);
 void display(GLFWwindow* window, std::vector<Model> models);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, std::vector<Model>& models);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
@@ -221,7 +221,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 		lastFrame = currFrame;
 
 		// Check inputs
-		processInput(window);
+		processInput(window, models);
 
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -261,7 +261,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 }
 
 
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow* window, std::vector<Model>& models) {
 	if ((glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) && !awaitingRelease) {
 		firstMouse = true;
 		captureMouse = !captureMouse;
@@ -297,6 +297,11 @@ void processInput(GLFWwindow* window) {
 		wireframe ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		awaitingRelease = true;
 	}
+	if (glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS && !awaitingRelease) {
+		if (models.size() > 0)
+			models.pop_back();
+		awaitingRelease = true;
+	}
 }
 
 
@@ -304,6 +309,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (GLFW_KEY_1 && action == GLFW_RELEASE)
 		awaitingRelease = false;
 	if (GLFW_KEY_2 && action == GLFW_RELEASE)
+		awaitingRelease = false;
+	if (GLFW_KEY_BACKSPACE && action == GLFW_RELEASE)
 		awaitingRelease = false;
 }
 
