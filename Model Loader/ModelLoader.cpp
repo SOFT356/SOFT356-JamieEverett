@@ -30,8 +30,10 @@ struct displayObj {
 
 ///////////////////////////////////////////////////
 // Forward Declarations
-void display(GLFWwindow* window, Model model);
-
+bool getModelPaths(std::vector<std::string>& modelPaths);
+void clearInput();
+bool loadModels(std::vector<std::string>& modelPaths, std::vector<Model>& models);
+void display(GLFWwindow* window, std::vector<Model> models);
 void processInput(GLFWwindow* window);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
@@ -75,24 +77,11 @@ bool displayAscii = true;
 
 int main()
 {
-	/*if (displayAscii)
-		printWelcomeAscii();*/
-	displayAscii = false;
-	/*
-	///////////////////////////////////////////////////
-	// Get user input (file/folder directory)
-	std::cout << "Enter the location of a model file or folder of models to continue..." << std::endl;
-	std::cout << "(press 'Escape' to close an open model)" << std::endl;
-	std::string modelPath; std::cin >> modelPath;
-	*/
-	//std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\Creeper-obj\creeper.obj)";
-	std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\LowPolyBoat-obj\low_poly_boat.obj)";
+	std::vector<std::string> modelPaths;
 
-	///////////////////////////////////////////////////
-	// Read Model
-	std::regex pattern(".[a-z0-9]+$", std::regex_constants::icase);
-	std::smatch fileExtension;
-	std::regex_search(modelPath, fileExtension, pattern);
+	// Ask user for model paths (keep asking until they enter valid strings)
+	while (!getModelPaths(modelPaths))
+		getModelPaths(modelPaths);
 
 	// Init opengl
 	glfwInit();
@@ -103,44 +92,114 @@ int main()
 
 	glewInit();
 
-	Model model;
-
-	if (fileExtension[0] == ".obj") {
-		model.path = modelPath;
-		model = loadObj(model);
-	} 
-	else if (fileExtension[0] == ".dae") {
-		// TODO: load a .dae file
-		// loadDae(modelPath);
-	}
-	else if (fileExtension[0] == ".fbx") {
-		// TODO: load a .fbx file
-		// loadFbx(modelPath);
-	}
-	else if (fileExtension[0] == ".3ds") {
-		// TODO: load a .3ds file
-		// load3ds(modelPath);
-	}
-	else {
-		system("cls");
-
-		printWelcomeAscii();
-		std::cout << std::endl;
-		std::cout << "ERROR->" << __FUNCTION__ << ": Unsupported file type" << std::endl;
-		std::cout << "Try using the supported file types:" << std::endl;
-		std::cout << "  - .obj" << std::endl;
-		std::cout << std::endl;
-
-		glfwTerminate();
-
-		main();
+	// Load the models (includes setting up meshes)
+	std::vector<Model> models;
+	if (!loadModels(modelPaths, models)) {
+		std::cout << "ERROR->" << __FUNCTION__ << ": Could not load models";
+		exit(EXIT_FAILURE);
 	}
 
-	display(window, model); // TODO: make this compatable with the DAE loader return
+	display(window, models); // TODO: make this compatable with the DAE loader return
 }
 
+bool getModelPaths(std::vector<std::string>& modelPaths) {
+	if (displayAscii)
+		printWelcomeAscii();
+	displayAscii = false;
 
-void display(GLFWwindow* window, Model model) {
+	///////////////////////////////////////////////////
+	// Get user input (file/folder directory)
+
+	int numModels;
+	std::cout << "Enter the number of models you wish to load" << std::endl;
+	std::cout << "(press 'Escape' to close the program at any point)" << std::endl;
+	std::cin >> numModels;
+	clearInput();
+	std::cout << std::endl;
+	if (!std::cin) {
+		std::cout << "ERROR: Input is not a number" << std::endl;
+		clearInput();
+		return false;
+	}
+
+	std::ifstream fileTester;
+	std::string currPath;
+
+	for (int i = 0; i < numModels; i++)	{
+		std::cout << "Enter the location of model " << i + 1 << std::endl;
+
+		std::getline(std::cin, currPath);
+
+		fileTester.open(currPath);
+		if (fileTester.fail()) {
+			std::cout << "ERROR: '" << currPath << "' is not a valid file path" << std::endl << std::endl;
+			return false;
+		}
+		fileTester.close();
+
+		modelPaths.push_back(currPath);
+	}
+
+	//std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\Creeper-obj\creeper.obj)";
+	//std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\LowPolyBoat-obj\low_poly_boat.obj)";
+
+	return true;
+}
+
+void clearInput() {
+	std::cin.clear();
+	std::cin.ignore(512, '\n');
+}
+
+bool loadModels(std::vector<std::string>& modelPaths, std::vector<Model>& models) {
+	///////////////////////////////////////////////////
+	// Read Model
+
+	for (int i = 0; i < modelPaths.size(); i++) {
+		std::regex pattern(".[a-z0-9]+$", std::regex_constants::icase);
+		std::smatch fileExtension;
+		std::regex_search(modelPaths[i], fileExtension, pattern);
+
+		Model model;
+
+		if (fileExtension[0] == ".obj") {
+			model.path = modelPaths[i];
+			model = loadObj(model);
+		}
+		else if (fileExtension[0] == ".dae") {
+			// TODO: load a .dae file
+			// loadDae(modelPath);
+		}
+		else if (fileExtension[0] == ".fbx") {
+			// TODO: load a .fbx file
+			// loadFbx(modelPath);
+		}
+		else if (fileExtension[0] == ".3ds") {
+			// TODO: load a .3ds file
+			// load3ds(modelPath);
+		}
+		else {
+			system("cls");
+
+			printWelcomeAscii();
+			std::cout << std::endl;
+			std::cout << "ERROR->" << __FUNCTION__ << ": Unsupported file type" << std::endl;
+			std::cout << "Try using the supported file types:" << std::endl;
+			std::cout << "  - .obj" << std::endl;
+			std::cout << std::endl;
+
+			glfwTerminate();
+
+			return false;
+		}
+
+		models.push_back(model);
+	}
+	
+	return true;
+}
+
+void display(GLFWwindow* window, std::vector<Model> models) {
 	// Attach input callbacks
 	glfwSetKeyCallback(window, keyCallback); // only used to check key releases
 	glfwSetCursorPosCallback(window, mouseCallback);
@@ -187,8 +246,10 @@ void display(GLFWwindow* window, Model model) {
 		setUniformMatrix(shaders, projection, "projection");
 		glUniform1i(glGetUniformLocation(shaders.ID, "theTexture"), 0);
 		
-		// Draw the model
-		model.draw(shaders);
+		// Draw the models
+		for (int i = 0; i < models.size(); i++)	{
+			models[i].draw(shaders);
+		}
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
