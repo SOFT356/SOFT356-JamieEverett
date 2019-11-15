@@ -117,7 +117,7 @@ bool getModelPaths(std::vector<std::string>& modelPaths) {
 	clearInput();
 	std::cout << std::endl;
 	if (!std::cin) {
-		std::cout << "ERROR: Input is not a number" << std::endl;
+		std::cout << "ERROR->" << __FUNCTION__ << ": Input is not a number" << std::endl;
 		clearInput();
 		return false;
 	}
@@ -132,7 +132,7 @@ bool getModelPaths(std::vector<std::string>& modelPaths) {
 
 		fileTester.open(currPath);
 		if (fileTester.fail()) {
-			std::cout << "ERROR: '" << currPath << "' is not a valid file path" << std::endl << std::endl;
+			std::cout << "ERROR->" << __FUNCTION__ << ": '" << currPath << "' is not a valid file path" << std::endl << std::endl;
 			return false;
 		}
 		fileTester.close();
@@ -258,8 +258,6 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 	//glDeleteBuffers(BufferValue::NUM_BUFFERS, buffers);
 
 	glfwTerminate();
-
-	//main();
 }
 
 
