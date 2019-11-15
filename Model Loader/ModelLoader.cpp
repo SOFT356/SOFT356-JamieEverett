@@ -1,5 +1,6 @@
 #include "ModelLoader.h"
 #include "LoadObj.h"
+#include "LoadDae.h"
 #include "Shader.h"
 #include "Model.h"
 
@@ -163,11 +164,11 @@ bool loadModels(std::vector<std::string>& modelPaths, std::vector<Model>& models
 
 		if (fileExtension[0] == ".obj") {
 			model.path = modelPaths[i];
-			model = loadObj(model);
+			loadObj(model);
 		}
 		else if (fileExtension[0] == ".dae") {
-			// TODO: load a .dae file
-			// loadDae(modelPath);
+			model.path = modelPaths[i];
+			loadDae(model);
 		}
 		else if (fileExtension[0] == ".fbx") {
 			// TODO: load a .fbx file
@@ -236,7 +237,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 		//modelTrans = glm::scale(modelTrans, glm::vec3(0.005f, 0.005f, 0.005f));
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
-		projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 250.0f);
 
 		// Select shaders
 		shaders.use();

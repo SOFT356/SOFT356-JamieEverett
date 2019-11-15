@@ -31,7 +31,7 @@ MtlData processMaterialData(std::string path, std::string currMaterialName);
 std::vector<Texture> processTextures(MtlData mtlData, std::string path);
 
 
-Model loadObj(Model& model) // Model.obj filepath
+void loadObj(Model& model) // Model.obj filepath
 {
 	std::vector<glm::vec3> tmpVertices;
 	std::vector<glm::vec2> tmpUvs;
@@ -160,7 +160,6 @@ Model loadObj(Model& model) // Model.obj filepath
 	///////////////////////////////////////////////////
 	// 5. Deallocate resources
 
-	return model;
 }
 
 

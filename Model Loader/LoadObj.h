@@ -22,7 +22,7 @@ const std::vector<std::string> textureTypes = {
 const int numTextureTypes = 3;
 
 
-Model loadObj(Model& model);
+void loadObj(Model& model);
 
 
 #endif
