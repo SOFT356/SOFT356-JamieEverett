@@ -93,8 +93,8 @@ Model loadObj(Model& model) // Model.obj filepath
 				std::stringstream lineStream(line.substr(2));
 
 				char delim = '/';
-				auto indicesPerFace = (std::count(line.begin(), line.end(), delim))/2; // 2 delims per index
-				
+				auto indicesPerFace = (std::count(line.begin(), line.end(), delim)) / 2; // 2 delims per index
+
 				std::vector<std::string> faceElements;
 				std::vector<unsigned int> tmpVertIndices, tmpUvIndices, tmpNormalIndices;
 
@@ -129,12 +129,24 @@ Model loadObj(Model& model) // Model.obj filepath
 					normalIndices.insert(normalIndices.end(), {
 						tmpNormalIndices[0], tmpNormalIndices[1], tmpNormalIndices[2],
 						tmpNormalIndices[2], tmpNormalIndices[3], tmpNormalIndices[0] });
-				}				
+				}
 			}
 
 			if (objDataType == "f") {
 				if (linePeek.find("usemtl") != -1 || linePeek.find("o ") != -1 || linePeek.empty()) {
 					// must be at the next mesh or at EOF -> create a new mesh with the stored data
+					int highestVertexIndex = *std::max_element(vertexIndices.begin(), vertexIndices.end());
+					int highestUvIndex = *std::max_element(uvIndices.begin(), uvIndices.end());
+					int highestNormalIndex = *std::max_element(normalIndices.begin(), normalIndices.end());
+
+					if (highestVertexIndex > tmpVertices.size() || highestUvIndex > tmpUvs.size() || highestNormalIndex > tmpNormals.size()) {
+						// something doesn't add up.. probably a corrupt file
+						std::cout << std::endl;
+						std::cout << "ERROR->" << __FUNCTION__ << ": Unable to process obj file, the file may be corrupt" << std::endl;
+						std::cout << "More Info: " << model.path << " is missing vertices that are required by the files indices" << std::endl;
+						break;
+					}
+
 					addMeshToCollection(model, tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices, model.path, currMaterialName);
 				}
 			}
@@ -208,7 +220,7 @@ ObjData processObjectData(
 	vertexIndices.clear();
 	uvIndices.clear();
 	normalIndices.clear();
-	
+
 	return objData;
 }
 
