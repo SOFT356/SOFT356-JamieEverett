@@ -111,7 +111,7 @@ bool getModelPaths(std::vector<std::string>& modelPaths) {
 	///////////////////////////////////////////////////
 	// Get user input (file/folder directory)
 
-	int numModels;
+	/*int numModels;
 	std::cout << "Enter the number of models you wish to load" << std::endl;
 	std::cin >> numModels;
 	clearInput();
@@ -138,10 +138,11 @@ bool getModelPaths(std::vector<std::string>& modelPaths) {
 		fileTester.close();
 
 		modelPaths.push_back(currPath);
-	}
+	}*/
 
-	//std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\Creeper-obj\creeper.obj)";
-	//std::string modelPath = R"(D:\source\repos\SOFT356\Model Loader\Test Files\LowPolyBoat-obj\low_poly_boat.obj)";
+	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\Creeper-obj\\creeper.obj");
+	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\LowPolyBoat-obj\\low_poly_boat.obj");
+	modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\low_poly_boat.dae");
 
 	return true;
 }
@@ -234,7 +235,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 		float angleDelta = (float)glfwGetTime() * 0.4f;
 
 		//modelTrans = glm::rotate(modelTrans, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
-		//modelTrans = glm::scale(modelTrans, glm::vec3(0.005f, 0.005f, 0.005f));
+		modelTrans = glm::scale(modelTrans, glm::vec3(0.005f, 0.005f, 0.005f));
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 250.0f);
