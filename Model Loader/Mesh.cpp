@@ -5,11 +5,12 @@ Mesh::Mesh() {
 
 }
 
-Mesh::Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, std::vector<Texture> textures) {
+Mesh::Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, DaeData daeData, std::vector<Texture> textures) {
 	this->path = path;
 	this->materialName = materialName;
 	this->objData = objData;
 	this->mtlData = mtlData;
+	this->daeData = daeData;
 	this->textures = textures;
 
 	setupMesh();

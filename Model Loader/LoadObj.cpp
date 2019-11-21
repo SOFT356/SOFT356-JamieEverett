@@ -179,7 +179,7 @@ void addMeshToCollection(Model& model,
 	tempMesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
 	tempMesh.mtlData = processMaterialData(path, currMaterialName);
 	tempMesh.textures = processTextures(tempMesh.mtlData, tempMesh.path);
-	model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData, tempMesh.textures));
+	model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData, tempMesh.daeData, tempMesh.textures));
 }
 
 

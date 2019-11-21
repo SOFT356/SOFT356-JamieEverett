@@ -2,15 +2,20 @@
 
 ///////////////////////////////////////////////////
 // Forward Declarations
+void splitIntoVector(std::vector<glm::vec2>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec3>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values);
 DaeData processDaeData(
+	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpPositions,
 	std::vector<glm::vec3> tmpNormals,
 	std::vector<glm::vec4> tmpColours,
+	std::vector<unsigned int> uvIndices,
 	std::vector<unsigned int> positionIndices,
 	std::vector<unsigned int> normalIndices, 
 	std::vector<unsigned int> colourIndices);
+std::vector<Texture> processTextures(DaeData daeData, std::string path, std::string texturePath);
+
 
 
 void loadDae(Model& model) {
@@ -19,20 +24,26 @@ void loadDae(Model& model) {
 	std::string line;
 	std::ifstream objFile(model.path, std::ios::binary);
 
+	std::vector<glm::vec2> tmpUvs;
 	std::vector<glm::vec3> tmpVertices;
 	std::vector<glm::vec3> tmpNormals;
 	std::vector<glm::vec4> tmpColours;
 
 	std::vector<std::string> indexNames;
-	std::vector<unsigned int> vertexIndices, normalIndices, colourIndices;
+	std::vector<unsigned int> uvIndices, vertexIndices, normalIndices, colourIndices;
+
+	std::string texturePath; // texture location for the dae
 
 	bool readIndices = false; // Flag to detect when indices will be available to read in
+	bool readTexturePath = false; // as above, but for the texture file
 	int npos = std::string::npos;
 
 	if (objFile.is_open()) {
 		while (getline(objFile, line)) {			
 			/*
 			Only interested in detecting:
+				<image		
+				<init_from>	 
 				<float_array
 				<triangles
 				</triangles>
@@ -57,12 +68,26 @@ void loadDae(Model& model) {
 				else if (line.find("colour") != std::string::npos || line.find("color") != std::string::npos) {
 					splitIntoVector(tmpColours, values);
 				}
+				else if (line.find("map") != std::string::npos) {
+					splitIntoVector(tmpUvs, values);
+				}
 			}
-			/////////////////////////////////////////////////////////////////
-			else if (line.find("<triangles") != npos) {
-				readIndices = true;
+			// TEXTURES /////////////////////////////////////////////////////
+			else if (line.find("<image") != npos) {
+				readTexturePath = true;
+			}
+			else if (line.find("<init_from>") != npos && readTexturePath) {
+				int floatStart = line.find_first_of(">") + 1;
+				int floatEnd = line.find_last_of("<");
+				texturePath = std::string(line.c_str() + floatStart, line.c_str() + floatEnd);
+			}
+			else if (line.find("</image>") != npos) {
+				readTexturePath = false;
 			}
 			// INDICES //////////////////////////////////////////////////////
+			else if (line.find("<triangles") != npos) {
+				readIndices = true;
+			}			
 			else if (line.find("<input") != npos && readIndices) {
 				std::stringstream ss(line);
 				std::string token;
@@ -105,44 +130,76 @@ void loadDae(Model& model) {
 				}
 
 				// assign generic vectors to their appropriate types
-				if (indexNames[0].compare("VERTEX") == 0)
+				if (indexNames[0].compare("TEXCOORD") == 0)
+					uvIndices = tmpVector1;
+				else if (indexNames[0].compare("VERTEX") == 0)
 					vertexIndices = tmpVector1;
 				else if (indexNames[0].compare("COLOR") == 0 || indexNames[0].compare("COLOUR") == 0)
 					colourIndices = tmpVector1;
 				else if (indexNames[0].compare("NORMAL") == 0)
 					normalIndices = tmpVector1;
 
-				if (indexNames[1].compare("VERTEX") == 0)
+				if (indexNames[1].compare("TEXCOORD") == 0)
+					uvIndices = tmpVector1;
+				else if (indexNames[1].compare("VERTEX") == 0)
 					vertexIndices = tmpVector1;
 				else if (indexNames[1].compare("COLOR") == 0 || indexNames[1].compare("COLOUR") == 0)
 					colourIndices = tmpVector2;
 				else if (indexNames[1].compare("NORMAL") == 0)
 					normalIndices = tmpVector2;
 
-				if (indexNames[2].compare("VERTEX") == 0)
+				if (indexNames[2].compare("TEXCOORD") == 0)
+					uvIndices = tmpVector1;
+				else if (indexNames[2].compare("VERTEX") == 0)
 					vertexIndices = tmpVector3;
 				else if (indexNames[2].compare("COLOR") == 0 || indexNames[2].compare("COLOUR") == 0)
 					colourIndices = tmpVector3;
 				else if (indexNames[2].compare("NORMAL") == 0)
 					normalIndices = tmpVector3;
-
-				/////////////////////////////////////////////////////////////////
-				else if (line.find("</triangles>") != npos) {
-					readIndices = false;
-				}
 			}
+			else if (line.find("</triangles>") != npos) {
+				readIndices = false;
+			}			
 		}
+
+		Mesh tempMesh;
+		tempMesh.path = model.path.substr(0, model.path.find_last_of("\\/"));
+		tempMesh.daeData = processDaeData(tmpUvs, tmpVertices, tmpNormals, tmpColours, uvIndices, vertexIndices, normalIndices, colourIndices);
+		tempMesh.textures = processTextures(tempMesh.daeData, tempMesh.path, texturePath);
+		model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData, tempMesh.daeData, tempMesh.textures));
 	}
 	else {
 		std::cout << std::endl;
 		std::cout << "ERROR->" << __FUNCTION__ << ": Unable to open dae file, the file may not exist or be corrupt" << std::endl;
 	}
-
-
-	///////////////////////////////////////////////////
-	// 2. Create data structures
 }
 
+
+void splitIntoVector(std::vector<glm::vec2>& targetVector, std::string values) {
+	std::stringstream posStream(values);
+	std::string token;
+	char delim = ' ';
+
+	glm::vec2 tmpVector = glm::vec2(0.0f, 0.0f);
+	int counter = 0;
+
+	while (getline(posStream, token, delim)) {
+		if (!tmpVector.x)
+			tmpVector.x = std::stof(token);
+		else if (!tmpVector.y)
+			tmpVector.y = std::stof(token);
+
+		counter++;
+
+		if (counter == 2) {
+			// push to vector if stride length is reached
+			targetVector.push_back(tmpVector);
+
+			tmpVector = glm::vec2(0.0f, 0.0f);
+			counter = 0;
+		}
+	}
+}
 
 void splitIntoVector(std::vector<glm::vec3>& targetVector, std::string values) {
 	std::stringstream posStream(values);
@@ -203,14 +260,22 @@ void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values) {
 }
 
 DaeData processDaeData(
+	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec3> tmpNormals,
 	std::vector<glm::vec4> tmpColours,
+	std::vector<unsigned int> uvIndices,
 	std::vector<unsigned int> vertexIndices,  
 	std::vector<unsigned int> normalIndices,
 	std::vector<unsigned int> colourIndices)
 {
 	DaeData daeData;
+
+	// process uv data
+	for (int i = 0; i < uvIndices.size(); i++) {
+		unsigned int uvIndex = uvIndices[i];
+		daeData.uvs.push_back(tmpUvs[uvIndex]);
+	}
 
 	// process position data
 	for (int i = 0; i < vertexIndices.size(); i++) {
@@ -229,4 +294,16 @@ DaeData processDaeData(
 		unsigned int normalIndex = normalIndices[i];
 		daeData.normals.push_back(tmpNormals[normalIndex]);
 	}
+
+	return daeData;
+}
+
+std::vector<Texture> processTextures(DaeData daeData, std::string path, std::string texturePath) {
+	///////////////////////////////////////////////////////////
+	// Setup Textures (if a texture file exists)
+	std::vector<Texture> textures;
+
+
+
+	return textures;
 }

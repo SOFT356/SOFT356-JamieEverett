@@ -40,8 +40,8 @@ struct MtlData {
 };
 
 struct DaeData {
-	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec4> colour;
 };
@@ -60,10 +60,12 @@ public:
 	ObjData objData;
 	MtlData mtlData;
 
+	DaeData daeData;
+
 	std::vector<Texture> textures;
 
 	Mesh();
-	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, std::vector<Texture> textures);
+	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, DaeData daeData, std::vector<Texture> textures);
 
 	void draw(Shader shader);
 private:
