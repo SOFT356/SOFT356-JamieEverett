@@ -4,6 +4,13 @@
 // Forward Declarations
 void splitIntoVector(std::vector<glm::vec3>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values);
+DaeData processDaeData(
+	std::vector<glm::vec3> tmpPositions,
+	std::vector<glm::vec3> tmpNormals,
+	std::vector<glm::vec4> tmpColours,
+	std::vector<unsigned int> positionIndices,
+	std::vector<unsigned int> normalIndices, 
+	std::vector<unsigned int> colourIndices);
 
 
 void loadDae(Model& model) {
@@ -12,12 +19,12 @@ void loadDae(Model& model) {
 	std::string line;
 	std::ifstream objFile(model.path, std::ios::binary);
 
-	std::vector<glm::vec3> tmpPositions;
+	std::vector<glm::vec3> tmpVertices;
 	std::vector<glm::vec3> tmpNormals;
 	std::vector<glm::vec4> tmpColours;
 
 	std::vector<std::string> indexNames;
-	std::vector<unsigned int> positionIndices, uvIndices, normalIndices;
+	std::vector<unsigned int> vertexIndices, normalIndices, colourIndices;
 
 	bool readIndices = false; // Flag to detect when indices will be available to read in
 	int npos = std::string::npos;
@@ -42,7 +49,7 @@ void loadDae(Model& model) {
 				int asda = std::string::npos;
 
 				if (line.find("positions-array") != std::string::npos) {
-					splitIntoVector(tmpPositions, values);
+					splitIntoVector(tmpVertices, values);
 				}
 				else if (line.find("normals-array") != std::string::npos) {
 					splitIntoVector(tmpNormals, values);
@@ -99,23 +106,23 @@ void loadDae(Model& model) {
 
 				// assign generic vectors to their appropriate types
 				if (indexNames[0].compare("VERTEX") == 0)
-					positionIndices = tmpVector1;
+					vertexIndices = tmpVector1;
 				else if (indexNames[0].compare("COLOR") == 0 || indexNames[0].compare("COLOUR") == 0)
-					uvIndices = tmpVector1;
+					colourIndices = tmpVector1;
 				else if (indexNames[0].compare("NORMAL") == 0)
 					normalIndices = tmpVector1;
 
 				if (indexNames[1].compare("VERTEX") == 0)
-					positionIndices = tmpVector1;
+					vertexIndices = tmpVector1;
 				else if (indexNames[1].compare("COLOR") == 0 || indexNames[1].compare("COLOUR") == 0)
-					uvIndices = tmpVector2;
+					colourIndices = tmpVector2;
 				else if (indexNames[1].compare("NORMAL") == 0)
 					normalIndices = tmpVector2;
 
 				if (indexNames[2].compare("VERTEX") == 0)
-					positionIndices = tmpVector3;
+					vertexIndices = tmpVector3;
 				else if (indexNames[2].compare("COLOR") == 0 || indexNames[2].compare("COLOUR") == 0)
-					uvIndices = tmpVector3;
+					colourIndices = tmpVector3;
 				else if (indexNames[2].compare("NORMAL") == 0)
 					normalIndices = tmpVector3;
 
@@ -195,13 +202,31 @@ void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values) {
 	}
 }
 
-void processPositionData(
-	std::vector<glm::vec3> tmpPositions,
+DaeData processDaeData(
+	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec3> tmpNormals,
 	std::vector<glm::vec4> tmpColours,
-	std::vector<unsigned int> positionIndices, 
-	std::vector<unsigned int> uvIndices, 
-	std::vector<unsigned int> normalIndices) 
+	std::vector<unsigned int> vertexIndices,  
+	std::vector<unsigned int> normalIndices,
+	std::vector<unsigned int> colourIndices)
 {
+	DaeData daeData;
 
+	// process position data
+	for (int i = 0; i < vertexIndices.size(); i++) {
+		unsigned int vertexIndex = vertexIndices[i];
+		daeData.vertices.push_back(tmpVertices[vertexIndex]);
+	}
+
+	// process uv data
+	for (int i = 0; i < colourIndices.size(); i++) {
+		unsigned int colourIndex = colourIndices[i];
+		daeData.colour.push_back(tmpColours[colourIndex]);
+	}
+
+	// process normal data
+	for (int i = 0; i < normalIndices.size(); i++) {
+		unsigned int normalIndex = normalIndices[i];
+		daeData.normals.push_back(tmpNormals[normalIndex]);
+	}
 }

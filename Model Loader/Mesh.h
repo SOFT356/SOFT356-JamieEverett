@@ -39,6 +39,13 @@ struct MtlData {
 	std::string map_Kd;							// Diffuse texture map
 };
 
+struct DaeData {
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+	std::vector<glm::vec4> colour;
+};
+
 struct Texture {
 	unsigned int id;
 	std::string type;
