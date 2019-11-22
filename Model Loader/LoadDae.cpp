@@ -140,16 +140,16 @@ void loadDae(Model& model) {
 					normalIndices = tmpVector1;
 
 				if (indexNames[1].compare("TEXCOORD") == 0)
-					uvIndices = tmpVector1;
+					uvIndices = tmpVector2;
 				else if (indexNames[1].compare("VERTEX") == 0)
-					vertexIndices = tmpVector1;
+					vertexIndices = tmpVector2;
 				else if (indexNames[1].compare("COLOR") == 0 || indexNames[1].compare("COLOUR") == 0)
 					colourIndices = tmpVector2;
 				else if (indexNames[1].compare("NORMAL") == 0)
 					normalIndices = tmpVector2;
 
 				if (indexNames[2].compare("TEXCOORD") == 0)
-					uvIndices = tmpVector1;
+					uvIndices = tmpVector3;
 				else if (indexNames[2].compare("VERTEX") == 0)
 					vertexIndices = tmpVector3;
 				else if (indexNames[2].compare("COLOR") == 0 || indexNames[2].compare("COLOUR") == 0)
@@ -163,10 +163,13 @@ void loadDae(Model& model) {
 		}
 
 		Mesh tempMesh;
+		tempMesh.meshType = MeshType::DAE;
 		tempMesh.path = model.path.substr(0, model.path.find_last_of("\\/"));
 		tempMesh.daeData = processDaeData(tmpUvs, tmpVertices, tmpNormals, tmpColours, uvIndices, vertexIndices, normalIndices, colourIndices);
 		tempMesh.textures = processTextures(tempMesh.daeData, tempMesh.path, texturePath);
-		model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData, tempMesh.daeData, tempMesh.textures));
+
+		tempMesh.setupMesh();
+		model.meshes.push_back(tempMesh);		
 	}
 	else {
 		std::cout << std::endl;
@@ -302,8 +305,41 @@ std::vector<Texture> processTextures(DaeData daeData, std::string path, std::str
 	///////////////////////////////////////////////////////////
 	// Setup Textures (if a texture file exists)
 	std::vector<Texture> textures;
+	GLuint textureBuffer[1];
 
+	if (!texturePath.empty()) {
+		glGenTextures(1, textureBuffer);
 
+		glBindTexture(GL_TEXTURE_2D, textureBuffer[0]);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		stbi_set_flip_vertically_on_load(true);
+
+		GLint width, height, nrChannels;
+		std::string totalPath = path + "\\" + texturePath;
+		
+		unsigned char* data = stbi_load(totalPath.c_str(), &width, &height, &nrChannels, 0);
+
+		if (data) {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+
+			Texture texture;
+			texture.id = 1;
+			texture.type = "texture_map";
+
+			textures.push_back(texture);
+		}
+		else {
+			std::cout << "WARN->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
+		}
+
+		stbi_image_free(data);
+	}
 
 	return textures;
 }

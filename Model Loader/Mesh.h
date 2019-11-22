@@ -13,10 +13,16 @@
 
 ///////////////////////////////////////////////////
 // DataTypes
+enum MeshType {
+	OBJ,
+	DAE
+};
+
 enum VertexBufferValue {
 	TRIANGLES,
-	COLOUR,
+	NORMALS,
 	TEXTURES,
+	COLOUR,
 	NUM_VERTEX_BUFFERS
 };
 
@@ -54,6 +60,8 @@ struct Texture {
 
 class Mesh {
 public:
+	MeshType meshType;
+
 	std::string path;
 	std::string materialName;
 
@@ -65,15 +73,20 @@ public:
 	std::vector<Texture> textures;
 
 	Mesh();
-	Mesh(std::string path, std::string materialName, ObjData objData, MtlData mtlData, DaeData daeData, std::vector<Texture> textures);
+	Mesh(MeshType meshType,
+		std::string path,
+		std::string materialName,
+		ObjData objData,
+		MtlData mtlData,
+		DaeData daeData,
+		std::vector<Texture> textures);
 
 	void draw(Shader shader);
+	void setupMesh();
 private:
 	unsigned int VAO = NULL;
 
 	GLuint vertexBuffers[NUM_VERTEX_BUFFERS];
-
-	void setupMesh();
 };
 
 #endif

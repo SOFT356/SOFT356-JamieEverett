@@ -174,12 +174,15 @@ void addMeshToCollection(Model& model,
 	std::string currMaterialName)
 {
 	Mesh tempMesh;
+	tempMesh.meshType = MeshType::OBJ;
 	tempMesh.path = path.substr(0, path.find_last_of("\\/"));
 	tempMesh.materialName = currMaterialName;
 	tempMesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
 	tempMesh.mtlData = processMaterialData(path, currMaterialName);
 	tempMesh.textures = processTextures(tempMesh.mtlData, tempMesh.path);
-	model.meshes.push_back(Mesh::Mesh(tempMesh.path, tempMesh.materialName, tempMesh.objData, tempMesh.mtlData, tempMesh.daeData, tempMesh.textures));
+
+	tempMesh.setupMesh();
+	model.meshes.push_back(tempMesh);	
 }
 
 
