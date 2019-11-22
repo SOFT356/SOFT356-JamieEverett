@@ -104,9 +104,9 @@ int main()
 }
 
 bool getModelPaths(std::vector<std::string>& modelPaths) {
-	if (displayAscii)
+	/*if (displayAscii)
 		printWelcomeAscii();
-	displayAscii = false;
+	displayAscii = false;*/
 
 	///////////////////////////////////////////////////
 	// Get user input (file/folder directory)
@@ -140,10 +140,10 @@ bool getModelPaths(std::vector<std::string>& modelPaths) {
 		modelPaths.push_back(currPath);
 	}*/
 
-	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\Creeper-obj\\creeper.obj");
-	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\LowPolyBoat-obj\\low_poly_boat.obj");
-	modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\low_poly_boat.dae");
-	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\Creeper-dae\\Creeper.dae");
+	//modelPaths.push_back("C:\\Users\\jeverett\\source\\repos\\SOFT356-JamieEverett\\Model Loader\\Test Files\\Creeper-obj\\creeper.obj");
+	//modelPaths.push_back("C:\\Users\\jeverett\\source\\repos\\SOFT356-JamieEverett\\Model Loader\\Test Files\\LowPolyBoat-obj\\low_poly_boat.obj");
+	modelPaths.push_back("C:\\Users\\jeverett\\source\\repos\\SOFT356-JamieEverett\\Model Loader\\Test Files\\low_poly_boat.dae");
+	//modelPaths.push_back("C:\\Users\\jeverett\\source\\repos\\SOFT356-JamieEverett\\Model Loader\\Test Files\\Creeper-dae\\Creeper.dae");
 
 	return true;
 }

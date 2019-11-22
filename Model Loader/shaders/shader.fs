@@ -4,12 +4,12 @@ out vec4 fragColour;
 struct Material {       
     float shininess;    // Ns
     vec3 ambient;       // Ka
-    vec3 diffuse;       // Kd
+    vec4 diffuse;       // Kd
     vec3 specular;      // Ks
     float transparency; // d
 }; 
 
-in vec3 vecColour;
+//in vec3 vecColour;
 in vec2 texCoord;
 
 uniform sampler2D texture_diffuse1;
@@ -22,6 +22,6 @@ void main()
         fragColour = texture(texture_diffuse1, texCoord);
     }
     else {
-        fragColour = vec4(material.diffuse, 1.0);
+        fragColour = vec4(material.diffuse);
     }
 }

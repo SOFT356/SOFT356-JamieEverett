@@ -15,6 +15,7 @@ DaeData processDaeData(
 	std::vector<unsigned int> normalIndices, 
 	std::vector<unsigned int> colourIndices);
 std::vector<Texture> processTextures(DaeData daeData, std::string path, std::string texturePath);
+bool coloursAreDifferent(glm::vec4 colour1, glm::vec4 colour2);
 
 
 
@@ -36,14 +37,17 @@ void loadDae(Model& model) {
 
 	bool readIndices = false; // Flag to detect when indices will be available to read in
 	bool readTexturePath = false; // as above, but for the texture file
+
+	int meshCounter = 0;
+
 	int npos = std::string::npos;
 
 	if (objFile.is_open()) {
-		while (getline(objFile, line)) {			
+		while (getline(objFile, line)) {
 			/*
 			Only interested in detecting:
-				<image		
-				<init_from>	 
+				<image
+				<init_from>
 				<float_array
 				<triangles
 				</triangles>
@@ -87,12 +91,12 @@ void loadDae(Model& model) {
 			// INDICES //////////////////////////////////////////////////////
 			else if (line.find("<triangles") != npos) {
 				readIndices = true;
-			}			
+			}
 			else if (line.find("<input") != npos && readIndices) {
 				std::stringstream ss(line);
 				std::string token;
 				char delim = ' ';
-					
+
 				// create vector of index names
 				while (std::getline(ss, token, delim)) {
 					if (token.find("semantic") != npos) {
@@ -128,7 +132,6 @@ void loadDae(Model& model) {
 					else
 						counter++;
 				}
-
 				// assign generic vectors to their appropriate types
 				if (indexNames[0].compare("TEXCOORD") == 0)
 					uvIndices = tmpVector1;
@@ -159,7 +162,11 @@ void loadDae(Model& model) {
 			}
 			else if (line.find("</triangles>") != npos) {
 				readIndices = false;
-			}			
+			}
+
+			/*auto asda1 = tmpColours[i];
+			auto asda = tmpColours[i + 1];*/
+			meshCounter++;
 		}
 
 		Mesh tempMesh;
@@ -169,7 +176,7 @@ void loadDae(Model& model) {
 		tempMesh.textures = processTextures(tempMesh.daeData, tempMesh.path, texturePath);
 
 		tempMesh.setupMesh();
-		model.meshes.push_back(tempMesh);		
+		model.meshes.push_back(tempMesh);
 	}
 	else {
 		std::cout << std::endl;
@@ -274,28 +281,42 @@ DaeData processDaeData(
 {
 	DaeData daeData;
 
-	// process uv data
-	for (int i = 0; i < uvIndices.size(); i++) {
-		unsigned int uvIndex = uvIndices[i];
-		daeData.uvs.push_back(tmpUvs[uvIndex]);
-	}
+	if (daeData.uvs.empty()) {
+		// No Texture - Setup a mesh for each colour
+		for (unsigned int i = 0; i < tmpColours.size(); i++) {
+			// create 
 
-	// process position data
-	for (int i = 0; i < vertexIndices.size(); i++) {
-		unsigned int vertexIndex = vertexIndices[i];
-		daeData.vertices.push_back(tmpVertices[vertexIndex]);
-	}
+			if (coloursAreDifferent(tmpColours[i], tmpColours[i + 1])) {
+				// time to make a new mesh
 
-	// process uv data
-	for (int i = 0; i < colourIndices.size(); i++) {
-		unsigned int colourIndex = colourIndices[i];
-		daeData.colour.push_back(tmpColours[colourIndex]);
+			}
+		}
 	}
+	else {
+		// Has Texture - Use a single mesh
+		// process uv data
+		for (int i = 0; i < uvIndices.size(); i++) {
+			unsigned int uvIndex = uvIndices[i];
+			daeData.uvs.push_back(tmpUvs[uvIndex]);
+		}
 
-	// process normal data
-	for (int i = 0; i < normalIndices.size(); i++) {
-		unsigned int normalIndex = normalIndices[i];
-		daeData.normals.push_back(tmpNormals[normalIndex]);
+		// process position data
+		for (int i = 0; i < vertexIndices.size(); i++) {
+			unsigned int vertexIndex = vertexIndices[i];
+			daeData.vertices.push_back(tmpVertices[vertexIndex]);
+		}
+
+		// process uv data
+		for (int i = 0; i < colourIndices.size(); i++) {
+			unsigned int colourIndex = colourIndices[i];
+			daeData.colour.push_back(tmpColours[colourIndex]);
+		}
+
+		// process normal data
+		for (int i = 0; i < normalIndices.size(); i++) {
+			unsigned int normalIndex = normalIndices[i];
+			daeData.normals.push_back(tmpNormals[normalIndex]);
+		}
 	}
 
 	return daeData;
@@ -335,11 +356,18 @@ std::vector<Texture> processTextures(DaeData daeData, std::string path, std::str
 			textures.push_back(texture);
 		}
 		else {
-			std::cout << "WARN->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
+			//std::cout << "WARN->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
 		}
 
 		stbi_image_free(data);
 	}
 
 	return textures;
+}
+
+bool coloursAreDifferent(glm::vec4 colour1, glm::vec4 colour2) {
+	if (colour1.r == colour2.r && colour1.g == colour2.g && colour1.b == colour2.b && colour1.a == colour2.a)
+		return false;
+	else 
+		return true;
 }

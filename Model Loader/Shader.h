@@ -19,6 +19,7 @@ public:
 	
 	void use();
 	void setVec3(const std::string &name, glm::vec3 &value);
+	void setVec4(const std::string& name, glm::vec4& value);
 	void setFloat(const std::string &name, float value);
 private:
 	void compileShader(unsigned int& shader, const char* shaderCode);
