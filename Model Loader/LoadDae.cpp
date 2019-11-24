@@ -163,6 +163,13 @@ void loadDae(Model& model) {
 				readIndices = false;
 				processMesh = true;
 			}
+			else if (line.find("</mesh>") != npos) {
+				// new mesh so clear temp vectors
+				tmpUvs.clear();
+				tmpVertices.clear();
+				tmpColours.clear();
+				tmpNormals.clear();
+			}
 
 			if (processMesh) {
 				// create mesh and add it to the model
