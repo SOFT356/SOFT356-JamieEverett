@@ -2,6 +2,7 @@
 
 ///////////////////////////////////////////////////
 // Forward Declarations
+void addMeshToModel(Model& model, std::vector<DaeData> daeVec, std::vector<MtlData> mtlVec);
 void splitIntoVector(std::vector<glm::vec2>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec3>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values);
@@ -33,27 +34,24 @@ void loadDae(Model& model) {
 	std::vector<std::string> indexNames;
 	std::vector<unsigned int> uvIndices, vertexIndices, normalIndices, colourIndices;
 
+	std::vector<MtlData> mtlVector;
+	std::vector<DaeData> daeVector;
+
 	std::string texturePath; // texture location for the dae
 
 	bool readIndices = false; // flag to detect when indices will be available to read in
+	bool readEffectData = false; // as above, but for colours/lighting data
 	bool readTexturePath = false; // as above, but for the texture file
-	bool processMesh = false; // flag to detect when to export data to a new mesh
+
+	bool processEffect = false; // flag to detect when to export data to a new effect
+	bool processMesh = false; // as above, but for a new mesh
+
+	MtlData tempMtlData; // used to store effect data before it gets processed
 
 	int npos = std::string::npos;
 
 	if (objFile.is_open()) {
 		while (getline(objFile, line)) {
-			/*
-			Only interested in detecting:
-				<image
-				<init_from>
-				<float_array
-				<triangles
-				</triangles>
-				<input
-				<p>
-			*/
-
 			// VERTICES ////////////////////////////////////////////////////
 			if (line.find("<float_array") != npos) {
 				int floatStart = line.find_first_of(">") + 1;
@@ -74,6 +72,46 @@ void loadDae(Model& model) {
 				else if (line.find("map") != std::string::npos) {
 					splitIntoVector(tmpUvs, values);
 				}
+			}
+			// EFFECTS //////////////////////////////////////////////////////
+			else if (line.find("<effect") != npos) {
+				readEffectData = true;
+			}
+			else if ((line.find("<color") != npos || line.find("<float") != npos) && readEffectData) {
+				int effectStart = line.find_first_of(">") + 1;
+				int effectEnd = line.find_last_of("<");
+				std::string values = std::string(line.c_str() + effectStart, line.c_str() + effectEnd);
+
+				std::istringstream sstrEffect(values);
+				std::string token;
+				char delim = ' ';
+
+				// emission
+				if (line.find("sid=\"emission\"") != npos) {
+					sstrEffect >> tempMtlData.Ke.r;
+					sstrEffect >> tempMtlData.Ke.g;
+					sstrEffect >> tempMtlData.Ke.b;
+					sstrEffect >> tempMtlData.Ke.a;
+				}
+				// diffuse
+				else if (line.find("sid=\"diffuse\"") != npos) {
+					sstrEffect >> tempMtlData.Kd.r;
+					sstrEffect >> tempMtlData.Kd.g;
+					sstrEffect >> tempMtlData.Kd.b;
+					sstrEffect >> tempMtlData.Kd.a;
+				}
+				// specular (reflectivity)
+				else if (line.find("sid=\"specular\"") != npos) {
+					sstrEffect >> tempMtlData.Ks.r;
+				}
+				// optical density (index of refraction)
+				else if (line.find("sid=\"ior\"") != npos) {
+					sstrEffect >> tempMtlData.Ni;
+				}
+			}
+			else if (line.find("</effect>") != npos) {
+				readEffectData = false;
+				processEffect = true;
 			}
 			// TEXTURES /////////////////////////////////////////////////////
 			else if (line.find("<image") != npos) {
@@ -171,7 +209,17 @@ void loadDae(Model& model) {
 				tmpNormals.clear();
 			}
 
-			if (processMesh) {
+
+			// DATA PROCESSING //////////////////////////////////////////////////////
+			if (processEffect) {
+				// add the material to the material vector
+				mtlVector.push_back(tempMtlData);
+
+				// clear the temporary material struct
+				tempMtlData = {};
+				processEffect = false;
+			}
+			else if (processMesh) {
 				// create mesh and add it to the model
 				Mesh tempMesh;
 				tempMesh.meshType = MeshType::DAE;
@@ -179,8 +227,8 @@ void loadDae(Model& model) {
 				tempMesh.daeData = processDaeData(tmpUvs, tmpVertices, tmpNormals, tmpColours, uvIndices, vertexIndices, normalIndices, colourIndices);
 				tempMesh.textures = processTextures(tempMesh.daeData, tempMesh.path, texturePath);
 
-				tempMesh.setupMesh();
-				model.meshes.push_back(tempMesh);
+				//tempMesh.setupMesh();
+				//model.meshes.push_back(tempMesh);
 
 				// prepare variables for the next mesh
 				indexNames.clear();
@@ -193,11 +241,19 @@ void loadDae(Model& model) {
 				processMesh = false;
 			}
 		}
+
+		// TODO: link up dae + mtl and add to model.meshes
+		//addMeshToModel(model, daeVector, mtlVector);
 	}
 	else {
 		std::cout << std::endl;
 		std::cout << "ERROR->" << __FUNCTION__ << ": Unable to open dae file, the file may not exist or be corrupt" << std::endl;
 	}
+}
+
+
+void addMeshToModel(Model& model, std::vector<DaeData> daeVec, std::vector<MtlData> mtlVec) {
+
 }
 
 
