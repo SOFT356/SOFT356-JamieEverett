@@ -35,10 +35,9 @@ void loadDae(Model& model) {
 
 	std::string texturePath; // texture location for the dae
 
-	bool readIndices = false; // Flag to detect when indices will be available to read in
+	bool readIndices = false; // flag to detect when indices will be available to read in
 	bool readTexturePath = false; // as above, but for the texture file
-
-	int meshCounter = 0;
+	bool processMesh = false; // flag to detect when to export data to a new mesh
 
 	int npos = std::string::npos;
 
@@ -162,21 +161,31 @@ void loadDae(Model& model) {
 			}
 			else if (line.find("</triangles>") != npos) {
 				readIndices = false;
+				processMesh = true;
 			}
 
-			/*auto asda1 = tmpColours[i];
-			auto asda = tmpColours[i + 1];*/
-			meshCounter++;
+			if (processMesh) {
+				// create mesh and add it to the model
+				Mesh tempMesh;
+				tempMesh.meshType = MeshType::DAE;
+				tempMesh.path = model.path.substr(0, model.path.find_last_of("\\/"));
+				tempMesh.daeData = processDaeData(tmpUvs, tmpVertices, tmpNormals, tmpColours, uvIndices, vertexIndices, normalIndices, colourIndices);
+				tempMesh.textures = processTextures(tempMesh.daeData, tempMesh.path, texturePath);
+
+				tempMesh.setupMesh();
+				model.meshes.push_back(tempMesh);
+
+				// prepare variables for the next mesh
+				indexNames.clear();
+
+				uvIndices.clear();
+				vertexIndices.clear();
+				colourIndices.clear();
+				normalIndices.clear();
+
+				processMesh = false;
+			}
 		}
-
-		Mesh tempMesh;
-		tempMesh.meshType = MeshType::DAE;
-		tempMesh.path = model.path.substr(0, model.path.find_last_of("\\/"));
-		tempMesh.daeData = processDaeData(tmpUvs, tmpVertices, tmpNormals, tmpColours, uvIndices, vertexIndices, normalIndices, colourIndices);
-		tempMesh.textures = processTextures(tempMesh.daeData, tempMesh.path, texturePath);
-
-		tempMesh.setupMesh();
-		model.meshes.push_back(tempMesh);
 	}
 	else {
 		std::cout << std::endl;
@@ -281,42 +290,27 @@ DaeData processDaeData(
 {
 	DaeData daeData;
 
-	if (daeData.uvs.empty()) {
-		// No Texture - Setup a mesh for each colour
-		for (unsigned int i = 0; i < tmpColours.size(); i++) {
-			// create 
-
-			if (coloursAreDifferent(tmpColours[i], tmpColours[i + 1])) {
-				// time to make a new mesh
-
-			}
-		}
+	for (int i = 0; i < uvIndices.size(); i++) {
+		unsigned int uvIndex = uvIndices[i];
+		daeData.uvs.push_back(tmpUvs[uvIndex]);
 	}
-	else {
-		// Has Texture - Use a single mesh
-		// process uv data
-		for (int i = 0; i < uvIndices.size(); i++) {
-			unsigned int uvIndex = uvIndices[i];
-			daeData.uvs.push_back(tmpUvs[uvIndex]);
-		}
 
-		// process position data
-		for (int i = 0; i < vertexIndices.size(); i++) {
-			unsigned int vertexIndex = vertexIndices[i];
-			daeData.vertices.push_back(tmpVertices[vertexIndex]);
-		}
+	// process position data
+	for (int i = 0; i < vertexIndices.size(); i++) {
+		unsigned int vertexIndex = vertexIndices[i];
+		daeData.vertices.push_back(tmpVertices[vertexIndex]);
+	}
 
-		// process uv data
-		for (int i = 0; i < colourIndices.size(); i++) {
-			unsigned int colourIndex = colourIndices[i];
-			daeData.colour.push_back(tmpColours[colourIndex]);
-		}
+	// process colour data
+	for (int i = 0; i < colourIndices.size(); i++) {
+		unsigned int colourIndex = colourIndices[i];
+		daeData.colour.push_back(tmpColours[colourIndex]);
+	}
 
-		// process normal data
-		for (int i = 0; i < normalIndices.size(); i++) {
-			unsigned int normalIndex = normalIndices[i];
-			daeData.normals.push_back(tmpNormals[normalIndex]);
-		}
+	// process normal data
+	for (int i = 0; i < normalIndices.size(); i++) {
+		unsigned int normalIndex = normalIndices[i];
+		daeData.normals.push_back(tmpNormals[normalIndex]);
 	}
 
 	return daeData;
@@ -356,7 +350,7 @@ std::vector<Texture> processTextures(DaeData daeData, std::string path, std::str
 			textures.push_back(texture);
 		}
 		else {
-			//std::cout << "WARN->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
+			std::cout << "WARN->" << __FUNCTION__ << ": Could not load texture (texture file may not exist)" << std::endl;
 		}
 
 		stbi_image_free(data);

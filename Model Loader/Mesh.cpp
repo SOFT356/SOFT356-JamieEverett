@@ -51,8 +51,7 @@ void Mesh::draw(Shader shader) {
 		//shader.setVec3("material.ambient", mtlData.Ka);
 
 		// convert RGB to RGBA
-		glm::vec4 convDiffuse = glm::vec4(mtlData.Kd, 1.0);
-		shader.setVec4("material.diffuse", convDiffuse);
+		shader.setVec4("material.diffuse", mtlData.Kd);
 
 		//shader.setVec3("material.specular", mtlData.Ks);
 
@@ -63,8 +62,8 @@ void Mesh::draw(Shader shader) {
 		glBindVertexArray(0);
 	} 
 	else {
-		// TODO: dae shader setting
-		shader.setVec4("material.diffuse", daeData.colour[0]);
+		if (!daeData.colour.empty())
+			shader.setVec4("material.diffuse", daeData.colour[0]);
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, daeData.vertices.size());

@@ -140,10 +140,11 @@ bool getModelPaths(std::vector<std::string>& modelPaths) {
 		modelPaths.push_back(currPath);
 	}*/
 
-	//modelPaths.push_back("C:\\Users\\jeverett\\source\\repos\\SOFT356-JamieEverett\\Model Loader\\Test Files\\Creeper-obj\\creeper.obj");
-	//modelPaths.push_back("C:\\Users\\jeverett\\source\\repos\\SOFT356-JamieEverett\\Model Loader\\Test Files\\LowPolyBoat-obj\\low_poly_boat.obj");
-	modelPaths.push_back("C:\\Users\\jeverett\\source\\repos\\SOFT356-JamieEverett\\Model Loader\\Test Files\\low_poly_boat.dae");
-	//modelPaths.push_back("C:\\Users\\jeverett\\source\\repos\\SOFT356-JamieEverett\\Model Loader\\Test Files\\Creeper-dae\\Creeper.dae");
+	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\Creeper-obj\\creeper.obj");
+	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\LowPolyBoat.obj"); wat?
+	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\LowPolyBoat-blender.dae");
+	modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\Creeper-dae\\Creeper.dae");
+	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\Pouf.dae");
 
 	return true;
 }
@@ -236,7 +237,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 		float angleDelta = (float)glfwGetTime() * 0.4f;
 
 		//modelTrans = glm::rotate(modelTrans, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
-		modelTrans = glm::scale(modelTrans, glm::vec3(0.005f, 0.005f, 0.005f));
+		//modelTrans = glm::scale(modelTrans, glm::vec3(0.008f, 0.008f, 0.008f));
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 250.0f);

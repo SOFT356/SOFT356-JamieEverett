@@ -33,16 +33,16 @@ struct ObjData {
 };
 
 struct MtlData {
-	float Ns = NULL;							// Specular exponent
-	glm::vec3 Ka = glm::vec3(0.0, 0.0, 0.0);	// Ambient colour
-	glm::vec3 Kd = glm::vec3(0.0, 0.0, 0.0);	// Diffuse colour
-	glm::vec3 Ks = glm::vec3(0.0, 0.0, 0.0);	// Specular colour
-	glm::vec3 Ke = glm::vec3(0.0, 0.0, 0.0);	// Emissive coefficient
-	float Ni = NULL;							// Optical density (index of refraction)
-	float d = NULL;								// Dissolved value
-	int illum = NULL;							// Illumination model
-	std::string map_d;							// Alpha texture map
-	std::string map_Kd;							// Diffuse texture map
+	float Ns = NULL;								// Specular exponent
+	glm::vec4 Ka = glm::vec4(0.0, 0.0, 0.0, 0.0);	// Ambient colour
+	glm::vec4 Kd = glm::vec4(0.0, 0.0, 0.0, 0.0);	// Diffuse colour
+	glm::vec4 Ks = glm::vec4(0.0, 0.0, 0.0, 0.0);	// Specular colour
+	glm::vec4 Ke = glm::vec4(0.0, 0.0, 0.0, 0.0);	// Emissive coefficient
+	float Ni = NULL;								// Optical density (index of refraction)
+	float d = NULL;									// Dissolved value
+	int illum = NULL;								// Illumination model
+	std::string map_d;								// Alpha texture map
+	std::string map_Kd;								// Diffuse texture map
 };
 
 struct DaeData {
