@@ -176,7 +176,6 @@ void addMeshToCollection(Model& model,
 	Mesh tempMesh;
 	tempMesh.meshType = MeshType::OBJ;
 	tempMesh.path = path.substr(0, path.find_last_of("\\/"));
-	tempMesh.materialName = currMaterialName;
 	tempMesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
 	tempMesh.mtlData = processMaterialData(path, currMaterialName);
 	tempMesh.textures = processTextures(tempMesh.mtlData, tempMesh.path);

@@ -5,10 +5,9 @@ Mesh::Mesh() {
 
 }
 
-Mesh::Mesh(MeshType meshType, std::string path, std::string materialName, ObjData objData, MtlData mtlData, DaeData daeData, std::vector<Texture> textures) {
+Mesh::Mesh(MeshType meshType, std::string path, ObjData objData, MtlData mtlData, DaeData daeData, std::vector<Texture> textures) {
 	this->meshType = meshType;
 	this->path = path;
-	this->materialName = materialName;
 	this->objData = objData;
 	this->mtlData = mtlData;
 	this->daeData = daeData;
@@ -47,24 +46,21 @@ void Mesh::draw(Shader shader) {
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 
+	shader.setVec4("material.diffuse", mtlData.Kd);
+
+	//shader.setVec3("material.ambient", mtlData.Ka);
+
+	//shader.setVec3("material.specular", mtlData.Ks);
+
+	//shader.setFloat("material.shininess", mtlData.Ni);
+
+	// TODO: combine objData and daeData so this is not needed
 	if (meshType == MeshType::OBJ) {
-		//shader.setVec3("material.ambient", mtlData.Ka);
-
-		// convert RGB to RGBA
-		shader.setVec4("material.diffuse", mtlData.Kd);
-
-		//shader.setVec3("material.specular", mtlData.Ks);
-
-		//shader.setFloat("material.shininess", mtlData.Ni);
-
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, objData.vertices.size());
 		glBindVertexArray(0);
 	} 
 	else {
-		if (!daeData.colour.empty())
-			shader.setVec4("material.diffuse", daeData.colour[0]);
-
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, daeData.vertices.size());
 		glBindVertexArray(0);

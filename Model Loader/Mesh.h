@@ -33,6 +33,7 @@ struct ObjData {
 };
 
 struct MtlData {
+	std::string materialName;						// Name of the material
 	float Ns = NULL;								// Specular exponent
 	glm::vec4 Ka = glm::vec4(0.0, 0.0, 0.0, 0.0);	// Ambient colour
 	glm::vec4 Kd = glm::vec4(0.0, 0.0, 0.0, 0.0);	// Diffuse colour
@@ -46,6 +47,7 @@ struct MtlData {
 };
 
 struct DaeData {
+	std::string materialName;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
@@ -63,7 +65,6 @@ public:
 	MeshType meshType;
 
 	std::string path;
-	std::string materialName;
 
 	ObjData objData;
 	MtlData mtlData;
@@ -75,7 +76,6 @@ public:
 	Mesh();
 	Mesh(MeshType meshType,
 		std::string path,
-		std::string materialName,
 		ObjData objData,
 		MtlData mtlData,
 		DaeData daeData,

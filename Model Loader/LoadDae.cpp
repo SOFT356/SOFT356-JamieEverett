@@ -2,11 +2,12 @@
 
 ///////////////////////////////////////////////////
 // Forward Declarations
-void addMeshToModel(Model& model, std::vector<DaeData> daeVec, std::vector<MtlData> mtlVec);
+void addMeshToModel(Model& model, std::vector<DaeData> daeVec, std::vector<MtlData> mtlVec, std::string texturePath);
 void splitIntoVector(std::vector<glm::vec2>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec3>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values);
-DaeData processDaeData(
+void processDaeData(
+	DaeData& daeData,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpPositions,
 	std::vector<glm::vec3> tmpNormals,
@@ -44,9 +45,10 @@ void loadDae(Model& model) {
 	bool readTexturePath = false; // as above, but for the texture file
 
 	bool processEffect = false; // flag to detect when to export data to a new effect
-	bool processMesh = false; // as above, but for a new mesh
+	bool endOfDaeData = false; // as above, but for a new mesh
 
 	MtlData tempMtlData; // used to store effect data before it gets processed
+	DaeData tempDaeData; // used to store dae data before it gets processed
 
 	int npos = std::string::npos;
 
@@ -75,6 +77,12 @@ void loadDae(Model& model) {
 			}
 			// EFFECTS //////////////////////////////////////////////////////
 			else if (line.find("<effect") != npos) {
+				int start = line.find("id=\"") + 4;
+				int end = line.find("-effect\"");
+				std::string effectName = line.substr(start, end - start);
+
+				tempMtlData.materialName = effectName;
+
 				readEffectData = true;
 			}
 			else if ((line.find("<color") != npos || line.find("<float") != npos) && readEffectData) {
@@ -127,6 +135,12 @@ void loadDae(Model& model) {
 			}
 			// INDICES //////////////////////////////////////////////////////
 			else if (line.find("<triangles") != npos) {
+				int start = line.find("material=\"") + 10;
+				int end = line.find("-material\"");
+				std::string effectName = line.substr(start, end - start);
+
+				tempDaeData.materialName = effectName;
+
 				readIndices = true;
 			}
 			else if (line.find("<input") != npos && readIndices) {
@@ -199,7 +213,7 @@ void loadDae(Model& model) {
 			}
 			else if (line.find("</triangles>") != npos) {
 				readIndices = false;
-				processMesh = true;
+				endOfDaeData = true;
 			}
 			else if (line.find("</mesh>") != npos) {
 				// new mesh so clear temp vectors
@@ -219,18 +233,16 @@ void loadDae(Model& model) {
 				tempMtlData = {};
 				processEffect = false;
 			}
-			else if (processMesh) {
-				// create mesh and add it to the model
-				Mesh tempMesh;
-				tempMesh.meshType = MeshType::DAE;
-				tempMesh.path = model.path.substr(0, model.path.find_last_of("\\/"));
-				tempMesh.daeData = processDaeData(tmpUvs, tmpVertices, tmpNormals, tmpColours, uvIndices, vertexIndices, normalIndices, colourIndices);
-				tempMesh.textures = processTextures(tempMesh.daeData, tempMesh.path, texturePath);
+			else if (endOfDaeData) {
+				// create a DaeData object
+				processDaeData(tempDaeData, tmpUvs, tmpVertices, tmpNormals, tmpColours,
+					uvIndices, vertexIndices, normalIndices, colourIndices);
 
-				//tempMesh.setupMesh();
-				//model.meshes.push_back(tempMesh);
+				daeVector.push_back(tempDaeData);
 
-				// prepare variables for the next mesh
+				// clear the temporary dae struct
+				tempDaeData = {};
+				
 				indexNames.clear();
 
 				uvIndices.clear();
@@ -238,12 +250,11 @@ void loadDae(Model& model) {
 				colourIndices.clear();
 				normalIndices.clear();
 
-				processMesh = false;
+				endOfDaeData = false;
 			}
 		}
 
-		// TODO: link up dae + mtl and add to model.meshes
-		//addMeshToModel(model, daeVector, mtlVector);
+		addMeshToModel(model, daeVector, mtlVector, texturePath);
 	}
 	else {
 		std::cout << std::endl;
@@ -252,8 +263,25 @@ void loadDae(Model& model) {
 }
 
 
-void addMeshToModel(Model& model, std::vector<DaeData> daeVec, std::vector<MtlData> mtlVec) {
+void addMeshToModel(Model& model, std::vector<DaeData> daeVec, std::vector<MtlData> mtlVec, std::string texturePath) {
+	// for each dae in daeVec, find its material and add them both to a mesh
+	for (unsigned int vertIndex = 0; vertIndex < daeVec.size(); vertIndex++) {
+		for (unsigned int matIndex = 0; matIndex < mtlVec.size(); matIndex++) {
+			if (strcmp(daeVec[vertIndex].materialName.c_str(), mtlVec[matIndex].materialName.c_str()) == 0) {
+				Mesh tempMesh;
 
+				tempMesh.meshType = MeshType::DAE;
+				tempMesh.path = model.path.substr(0, model.path.find_last_of("\\/"));
+				tempMesh.textures = processTextures(tempMesh.daeData, tempMesh.path, texturePath);
+				
+				tempMesh.daeData = daeVec[vertIndex];
+				tempMesh.mtlData = mtlVec[matIndex];
+
+				tempMesh.setupMesh();
+				model.meshes.push_back(tempMesh);
+			}
+		}
+	}
 }
 
 
@@ -341,7 +369,8 @@ void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values) {
 	}
 }
 
-DaeData processDaeData(
+void processDaeData(
+	DaeData& daeData,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec3> tmpNormals,
@@ -351,8 +380,6 @@ DaeData processDaeData(
 	std::vector<unsigned int> normalIndices,
 	std::vector<unsigned int> colourIndices)
 {
-	DaeData daeData;
-
 	for (int i = 0; i < uvIndices.size(); i++) {
 		unsigned int uvIndex = uvIndices[i];
 		daeData.uvs.push_back(tmpUvs[uvIndex]);
@@ -375,8 +402,6 @@ DaeData processDaeData(
 		unsigned int normalIndex = normalIndices[i];
 		daeData.normals.push_back(tmpNormals[normalIndex]);
 	}
-
-	return daeData;
 }
 
 std::vector<Texture> processTextures(DaeData daeData, std::string path, std::string texturePath) {
