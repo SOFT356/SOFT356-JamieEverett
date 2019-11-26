@@ -9,9 +9,7 @@
 FILETYPES:
 
 .obj - Wavefront OBJ & MTL
-.dae - Collada DAE
-.fbx - Autodesk FBX (proprietary)
-.3ds - Autodesk 3DS (proprietary)
+.dae - Collada DAE (Blender exported version only)
 
 ********************************************************/
 
@@ -188,14 +186,6 @@ bool loadModels(std::vector<std::string>& modelPaths, std::vector<Model>& models
 			model.path = modelPaths[i];
 			loadDae(model);
 		}
-		else if (fileExtension[0] == ".fbx") {
-			// TODO: load a .fbx file
-			// loadFbx(modelPath);
-		}
-		else if (fileExtension[0] == ".3ds") {
-			// TODO: load a .3ds file
-			// load3ds(modelPath);
-		}
 		else {
 			system("cls");
 
@@ -270,7 +260,6 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 			setUniformMatrix(shaders, modelTrans, "model");
 			setUniformMatrix(shaders, view, "view");
 			setUniformMatrix(shaders, projection, "projection");
-			glUniform1i(glGetUniformLocation(shaders.ID, "theTexture"), 0);
 		
 			// Draw the models
 			models[i].draw(shaders);
@@ -279,8 +268,6 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
-	//glDeleteBuffers(BufferValue::NUM_BUFFERS, buffers);
 
 	glfwTerminate();
 }
