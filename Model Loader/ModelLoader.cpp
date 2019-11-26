@@ -240,28 +240,33 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Model transformations
-		glm::mat4 modelTrans = glm::mat4(1.0f);
-		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 projection = glm::mat4(1.0f);
+		float posOffset = 0.0f;
 
-		float angleDelta = (float)glfwGetTime() * 0.4f;
+		for (int i = 0; i < models.size(); i++) {
+			// Model transformations
+			glm::mat4 modelTrans = glm::mat4(1.0f);
+			glm::mat4 view = glm::mat4(1.0f);
+			glm::mat4 projection = glm::mat4(1.0f);
 
-		//modelTrans = glm::rotate(modelTrans, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
-		//modelTrans = glm::scale(modelTrans, glm::vec3(0.008f, 0.008f, 0.008f));
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+			float angleDelta = (float)glfwGetTime() * 0.4f;
 
-		projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 250.0f);
+			//modelTrans = glm::rotate(modelTrans, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
+			//modelTrans = glm::scale(modelTrans, glm::vec3(0.008f, 0.008f, 0.008f));
+			modelTrans = glm::translate(modelTrans, glm::vec3(posOffset, 0.0f, 0.0f));
+			posOffset += 5;
 
-		// Select shaders
-		shaders.use();
-		setUniformMatrix(shaders, modelTrans, "model");
-		setUniformMatrix(shaders, view, "view");
-		setUniformMatrix(shaders, projection, "projection");
-		glUniform1i(glGetUniformLocation(shaders.ID, "theTexture"), 0);
+			view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+			projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 250.0f);
+
+			// Select shaders
+			shaders.use();
+			setUniformMatrix(shaders, modelTrans, "model");
+			setUniformMatrix(shaders, view, "view");
+			setUniformMatrix(shaders, projection, "projection");
+			glUniform1i(glGetUniformLocation(shaders.ID, "theTexture"), 0);
 		
-		// Draw the models
-		for (int i = 0; i < models.size(); i++)	{
+			// Draw the models
 			models[i].draw(shaders);
 		}
 
