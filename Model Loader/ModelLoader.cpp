@@ -81,8 +81,12 @@ int main()
 	std::vector<std::string> modelPaths;
 
 	// Ask user for model paths (keep asking until they enter valid strings)
-	while (!getModelPaths(modelPaths))
-		getModelPaths(modelPaths);
+	bool validPaths = false;
+
+	while (!validPaths) {
+		if (getModelPaths(modelPaths))
+			validPaths = true;
+	}
 
 	// Init opengl
 	glfwInit();
