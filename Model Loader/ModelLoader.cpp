@@ -35,7 +35,7 @@ bool getModelPaths(std::vector<std::string>& modelPaths);
 void clearInput();
 bool loadModels(std::vector<std::string>& modelPaths, std::vector<Model>& models);
 void display(GLFWwindow* window, std::vector<Model> models);
-void processInput(GLFWwindow* window, std::vector<Model>& models);
+void processInput(GLFWwindow* window, std::vector<Model>& models, float& scaleFactor);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
@@ -66,6 +66,7 @@ WindowStatus windowStatus = WindowStatus::FOCUSED;
 // rendering
 bool captureMouse = true;
 bool wireframe = false;
+float scaleFactor = 1.0f;
 
 // timing
 float deltaTime = 0.0f; // Time between current frame and last frame
@@ -239,7 +240,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 		lastFrame = currFrame;
 
 		// Check inputs
-		processInput(window, models);
+		processInput(window, models, scaleFactor);
 
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -256,6 +257,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 
 			//modelTrans = glm::rotate(modelTrans, angleDelta, glm::vec3(1.0f, 1.0f, 0.0f));
 			//modelTrans = glm::scale(modelTrans, glm::vec3(0.008f, 0.008f, 0.008f));
+			modelTrans = glm::scale(modelTrans, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
 			modelTrans = glm::translate(modelTrans, glm::vec3(posOffset, 0.0f, 0.0f));
 			posOffset += 5;
 
@@ -272,7 +274,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 		
 			// Draw the models
 			models[i].draw(shaders);
-		}
+		}		
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -284,7 +286,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 }
 
 
-void processInput(GLFWwindow* window, std::vector<Model>& models) {
+void processInput(GLFWwindow* window, std::vector<Model>& models, float& scaleFactor) {
 	if ((glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) && !awaitingRelease) {
 		firstMouse = true;
 		captureMouse = !captureMouse;
@@ -297,6 +299,7 @@ void processInput(GLFWwindow* window, std::vector<Model>& models) {
 		return;
 
 	float cameraSpeed = 2.5f * deltaTime;
+	float scaleDelta = 0.08f; // delta values to modify scaleFactor by
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
@@ -315,6 +318,11 @@ void processInput(GLFWwindow* window, std::vector<Model>& models) {
 		cameraPos += cameraUp * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		cameraPos -= cameraUp * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS)
+		scaleFactor += scaleDelta;
+	if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS)
+		if (scaleFactor - scaleDelta > 0) // prevent the model from inverting
+			scaleFactor -= scaleDelta;
 	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS && !awaitingRelease) {
 		wireframe = !wireframe;
 		wireframe ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
