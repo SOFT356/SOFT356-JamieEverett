@@ -22,7 +22,7 @@ When loading an obj file, the loader will look for an mtl file with the same nam
 
 ### Keybindings
 
-The model loader comes with the following controls to provide a nicer user experience (all bindings are not case sensitive):
+The model loader comes with the following controls to provide a satisfying user experience (all bindings are not case sensitive):
 
 <b>Camera Controls:</b>
 
@@ -30,6 +30,7 @@ The model loader comes with the following controls to provide a nicer user exper
     <b>Mouse:</b>
     <li>Mouse Movement : Pitch & Yaw</li>
     <li>Mouse Scroll : Increase/Decrease Zoom</li>
+    <br>
     <b>Keyboard:</b>
     <li>W : Camera Forward</li>
     <li>A : Camera Left</li>
@@ -59,8 +60,8 @@ The model loader comes with the following controls to provide a nicer user exper
 ### Loading Models
 
 <ol>
-    <li>When the program is run, a command prompt is opened which asks for the number of models you wish to load. Enter the required amount and press <i>enter</i>.</li>
-    <li>Then, enter the file locations for each model requested.</li>
+    <li>When the program is run, a command prompt will open which will ask for the number of models you wish to load. Enter the required amount and press <i>enter</i>.</li>
+    <li>Then, enter the file locations for each model as requested.</li>
     <li>The models will then be displayed in a new OpenGL window. Use the above listed keybindings to explore the models.</li>
     <li>When you are finished using the program, press <i>escape</i> to exit.</li>
 </ol>
