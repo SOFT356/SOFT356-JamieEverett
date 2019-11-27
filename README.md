@@ -66,7 +66,7 @@ The model loader comes with the following controls to provide a satisfying user 
     <li>When you are finished using the program, press <i>escape</i> to exit.</li>
 </ol>
 
-### Code Structure
+## Code Structure
 
 The code is made up of 6 main cpp files, the main one being <i>ModelLoader.cpp</i>. From this file, the model paths are acquired from <i>getModelPaths(vector\<string\> modelPaths)</i>, passed to the <i>loadModels(vector\<string\> modelPaths, vector\<Model\> models)</i> function and then displayed through <i>display(GLFWwindow\* window, vector\<Model\> models)</i>.
 
@@ -89,6 +89,7 @@ Most of this function is repeatedly called until <i>Escape</i> is pressed (which
 
 <br>
 Below is a high-level flow diagram of the program execution logic:
+<br>
 
 <p align="center">
     <img src="doc/SOFT356-LogicFlowDiagram.png" title="Logic Flow Diagram" alt="Logic Flow Diagram">
@@ -97,19 +98,25 @@ Below is a high-level flow diagram of the program execution logic:
 <br>
 Each <i>Model</i> object is constructed of one or more (potentially many) <i>Mesh</i> objects. The <i>Mesh</i> objects contain both vertex data for position, texture coordinates (UVs) and normals as well as material data such as ambient, diffuse and specular colour. When <i>model.draw()</i> is called, each <i>Mesh</i> is looped over and <i>mesh.draw()</i> called (which is where <i>glDrawArrays()</i> can be found).
 
+<br>
 The <i>Shader.cpp</i> class constructs a <i>Shader</i> object from a vertex and fragment shader filepath. The shader files are compiled and then a shader program is created. The class also contains some useful utility functions, such as quickly equipping shader programs.
 
-### Optimisations and Improvements
+## Optimisations and Improvements
 
-I have added some extra features to generally improve the loader, such as corrupt file detection.
+I have added some extra features to generally improve the loader, such as corrupt file detection. When attempting to load obj or dae files, a simple integrity check is performed on each mesh before adding it to the model. This prevents files which are missing vertices from crashing the program during mesh processing. If a file with missing vertices is found, a similar error as below will be presented to the user:
 
-<!-- corrupt file detection -->
-<!-- using headers to prevent recompilation of code -->
+<br>
+<p align="center">
+    <img src="doc/CorruptFileDetection.png" title="Logic Flow Diagram" alt="Logic Flow Diagram">
+</p>
 
-### Future Improvements
+<br>
+I have also created a header file (with include guards) for each cpp file, to prevent duplicate code sections being needlessly recompiled.
 
-<!-- what I'd like to add, what would've done -->
+## Future Improvements
 
-<!-- Include what would've been done (adding custom file type) and  why it would be better over current options (hard to parse XML, etc.). Add support for loading folders.
-
-As C2 will build on this, may add to C2 going forward. -->
+One main feature I would like to add in the future is the ability to save models in a custom format. To do this I would take the best parts from both obj and dae file formats and aim to create an improved way to store models. I would combine the simplicity of the obj plaintext format with the mesh structuring of the dae XML format. Simply, my file format would look like an obj file with better indicators between where meshes and materials begin and end.
+<br><br>
+I would also like to add support for recursive file loading from a folder input.
+<br><br>
+As my C2 project will build on this Model Loader, I will attempt to implement as many improvements as possible in the next submission.
