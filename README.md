@@ -1,6 +1,6 @@
 # SOFT356 C1: Model Loader
 
-#### Student No: 10500420 / Jamie Everett
+#### Student No: 10550420 / Jamie Everett
 
 <!-- Which version Visual Studio, OpenGL/Vulkan -->
 
