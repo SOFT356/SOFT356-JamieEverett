@@ -144,7 +144,7 @@ void loadObj(Model& model)
 						std::cout << std::endl;
 						std::cout << "ERROR->" << __FUNCTION__ << ": Unable to process obj file, the file may be corrupt" << std::endl;
 						std::cout << "More Info: " << model.path << " is missing vertices that are required by the files indices" << std::endl;
-						break;
+						exit(EXIT_FAILURE);
 					}
 
 					addMeshToCollection(model, tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices, model.path, currMaterialName);

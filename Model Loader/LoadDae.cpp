@@ -7,15 +7,14 @@ void splitIntoVector(std::vector<glm::vec2>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec3>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values);
 void processDaeData(
+	std::string modelPath,
 	VecData& vecData,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpPositions,
 	std::vector<glm::vec3> tmpNormals,
-	std::vector<glm::vec4> tmpColours,
 	std::vector<unsigned int> uvIndices,
 	std::vector<unsigned int> positionIndices,
-	std::vector<unsigned int> normalIndices, 
-	std::vector<unsigned int> colourIndices);
+	std::vector<unsigned int> normalIndices);
 std::vector<Texture> processTextures(std::string path, std::string texturePath);
 bool coloursAreDifferent(glm::vec4 colour1, glm::vec4 colour2);
 
@@ -30,10 +29,9 @@ void loadDae(Model& model) {
 	std::vector<glm::vec2> tmpUvs;
 	std::vector<glm::vec3> tmpVertices;
 	std::vector<glm::vec3> tmpNormals;
-	std::vector<glm::vec4> tmpColours;
 
 	std::vector<std::string> indexNames;
-	std::vector<unsigned int> uvIndices, vertexIndices, normalIndices, colourIndices;
+	std::vector<unsigned int> uvIndices, vertexIndices, normalIndices;
 
 	std::vector<MtlData> mtlVector;
 	std::vector<VecData> daeVector;
@@ -67,9 +65,6 @@ void loadDae(Model& model) {
 				}
 				else if (line.find("normals-array") != std::string::npos) {
 					splitIntoVector(tmpNormals, values);
-				}
-				else if (line.find("colour") != std::string::npos || line.find("color") != std::string::npos) {
-					splitIntoVector(tmpColours, values);
 				}
 				else if (line.find("map") != std::string::npos) {
 					splitIntoVector(tmpUvs, values);
@@ -188,8 +183,6 @@ void loadDae(Model& model) {
 					uvIndices = tmpVector1;
 				else if (indexNames[0].compare("VERTEX") == 0)
 					vertexIndices = tmpVector1;
-				else if (indexNames[0].compare("COLOR") == 0 || indexNames[0].compare("COLOUR") == 0)
-					colourIndices = tmpVector1;
 				else if (indexNames[0].compare("NORMAL") == 0)
 					normalIndices = tmpVector1;
 
@@ -197,8 +190,6 @@ void loadDae(Model& model) {
 					uvIndices = tmpVector2;
 				else if (indexNames[1].compare("VERTEX") == 0)
 					vertexIndices = tmpVector2;
-				else if (indexNames[1].compare("COLOR") == 0 || indexNames[1].compare("COLOUR") == 0)
-					colourIndices = tmpVector2;
 				else if (indexNames[1].compare("NORMAL") == 0)
 					normalIndices = tmpVector2;
 
@@ -206,8 +197,6 @@ void loadDae(Model& model) {
 					uvIndices = tmpVector3;
 				else if (indexNames[2].compare("VERTEX") == 0)
 					vertexIndices = tmpVector3;
-				else if (indexNames[2].compare("COLOR") == 0 || indexNames[2].compare("COLOUR") == 0)
-					colourIndices = tmpVector3;
 				else if (indexNames[2].compare("NORMAL") == 0)
 					normalIndices = tmpVector3;
 			}
@@ -219,7 +208,6 @@ void loadDae(Model& model) {
 				// new mesh so clear temp vectors
 				tmpUvs.clear();
 				tmpVertices.clear();
-				tmpColours.clear();
 				tmpNormals.clear();
 			}
 
@@ -235,8 +223,8 @@ void loadDae(Model& model) {
 			}
 			else if (endOfDaeData) {
 				// create a DaeData object
-				processDaeData(tempDaeData, tmpUvs, tmpVertices, tmpNormals, tmpColours,
-					uvIndices, vertexIndices, normalIndices, colourIndices);
+				processDaeData(model.path, tempDaeData, tmpUvs, tmpVertices, tmpNormals,
+					uvIndices, vertexIndices, normalIndices);
 
 				daeVector.push_back(tempDaeData);
 
@@ -247,7 +235,6 @@ void loadDae(Model& model) {
 
 				uvIndices.clear();
 				vertexIndices.clear();
-				colourIndices.clear();
 				normalIndices.clear();
 
 				endOfDaeData = false;
@@ -370,16 +357,27 @@ void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values) {
 }
 
 void processDaeData(
+	std::string modelPath,
 	VecData& vecData,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec3> tmpNormals,
-	std::vector<glm::vec4> tmpColours,
 	std::vector<unsigned int> uvIndices,
 	std::vector<unsigned int> vertexIndices,  
-	std::vector<unsigned int> normalIndices,
-	std::vector<unsigned int> colourIndices)
+	std::vector<unsigned int> normalIndices)
 {
+	int highestVertexIndex = *std::max_element(vertexIndices.begin(), vertexIndices.end());
+	int highestUvIndex = *std::max_element(uvIndices.begin(), uvIndices.end());
+	int highestNormalIndex = *std::max_element(normalIndices.begin(), normalIndices.end());
+
+	if (highestVertexIndex > tmpVertices.size() || highestUvIndex > tmpUvs.size() || highestNormalIndex > tmpNormals.size()) {
+		// something doesn't add up.. probably a corrupt file
+		std::cout << std::endl;
+		std::cout << "ERROR->" << __FUNCTION__ << ": Unable to process obj file, the file may be corrupt" << std::endl;
+		std::cout << "More Info: " << modelPath << " is missing vertices that are required by the files indices" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
 	for (int i = 0; i < uvIndices.size(); i++) {
 		unsigned int uvIndex = uvIndices[i];
 		vecData.uvs.push_back(tmpUvs[uvIndex]);

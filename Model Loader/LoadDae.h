@@ -2,6 +2,7 @@
 #define LOADDAE_H
 
 #include <iterator>
+#include <algorithm>
 
 #include "stb_image.h"
 #include "Model.h";

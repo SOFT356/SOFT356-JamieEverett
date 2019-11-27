@@ -103,7 +103,7 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	display(window, models); // TODO: make this compatable with the DAE loader return
+	display(window, models);
 }
 
 bool getModelPaths(std::vector<std::string>& modelPaths) {
@@ -152,11 +152,11 @@ bool getModelPaths(std::vector<std::string>& modelPaths) {
 
 	// ******************************************************************************************************************
 	// DEBUG USE ONLY
-	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\Creeper-obj\\creeper.obj");
-	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\LowPolyBoat-obj\\low_poly_boat.obj");
-	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\LowPolyBoat-blender.dae");
-	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\Creeper-dae\\Creeper.dae");
-	//modelPaths.push_back("D:\\source\\repos\\SOFT356\\Model Loader\\Test Files\\Pouf.dae");
+	//  modelPaths.push_back("Test Files\\Creeper-obj\\creeper.obj");
+	//  modelPaths.push_back("Test Files\\LowPolyBoat-obj\\low_poly_boat.obj");
+	//  modelPaths.push_back("Test Files\\LowPolyBoat-blender.dae");
+	//  modelPaths.push_back("Test Files\\Creeper-dae\\Creeper.dae");
+	//  modelPaths.push_back("Test Files\\Pouf.dae");
 	// ******************************************************************************************************************
 
 	return true;
@@ -223,8 +223,7 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 	
 	glEnable(GL_DEPTH_TEST);
 	
-	while (!glfwWindowShouldClose(window))
-	{
+	while (!glfwWindowShouldClose(window)) {
 		// Frame timer logic
 		float currFrame = (float)glfwGetTime();
 		deltaTime = currFrame - lastFrame;
@@ -286,13 +285,10 @@ void processInput(GLFWwindow* window, std::vector<Model>& models, float& scaleFa
 		return;
 
 	float cameraSpeed = 2.5f * deltaTime;
-	float scaleDelta = 0.08f; // delta values to modify scaleFactor by
+	float scaleDelta = 0.08f; // delta value to modify scaleFactor by
 
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-		displayAscii = true;
-		system("cls");
-	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += cameraSpeed * cameraFront;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
