@@ -39,17 +39,10 @@ void Mesh::draw(Shader shader) {
 
 	//shader.setFloat("material.shininess", mtlData.Ni);
 
-	// TODO: combine objData and daeData so this is not needed
-	if (meshType == MeshType::OBJ) {
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, objData.vertices.size());
-		glBindVertexArray(0);
-	} 
-	else {
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, daeData.vertices.size());
-		glBindVertexArray(0);
-	}
+
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, vecData.vertices.size());
+	glBindVertexArray(0);
 
 	// reset active texture
 	glActiveTexture(GL_TEXTURE0);
@@ -66,10 +59,7 @@ void Mesh::setupMesh(Shader shader) {
 	// position buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[VertexBufferValue::TRIANGLES]);
 
-	if (meshType == MeshType::OBJ)
-		glBufferData(GL_ARRAY_BUFFER, objData.vertices.size() * sizeof(glm::vec3), &objData.vertices[0], GL_STATIC_DRAW);
-	else
-		glBufferData(GL_ARRAY_BUFFER, daeData.vertices.size() * sizeof(glm::vec3), &daeData.vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vecData.vertices.size() * sizeof(glm::vec3), &vecData.vertices[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
@@ -78,23 +68,17 @@ void Mesh::setupMesh(Shader shader) {
 	// normal buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[VertexBufferValue::NORMALS]);
 
-	if (meshType == MeshType::OBJ)
-		glBufferData(GL_ARRAY_BUFFER, objData.normals.size() * sizeof(glm::vec3), &objData.normals[0], GL_STATIC_DRAW);
-	else
-		glBufferData(GL_ARRAY_BUFFER, daeData.normals.size() * sizeof(glm::vec3), &daeData.normals[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vecData.normals.size() * sizeof(glm::vec3), &vecData.normals[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(1);
 
 
 	// texture buffer
-	if (!daeData.uvs.empty() || !objData.uvs.empty()) {
+	if (!vecData.uvs.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[VertexBufferValue::TEXTURES]);
 
-		if (meshType == MeshType::OBJ)
-			glBufferData(GL_ARRAY_BUFFER, objData.uvs.size() * sizeof(glm::vec2), &objData.uvs[0], GL_STATIC_DRAW);
-		else if (meshType == MeshType::DAE && !daeData.uvs.empty())
-			glBufferData(GL_ARRAY_BUFFER, daeData.uvs.size() * sizeof(glm::vec2), &daeData.uvs[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, vecData.uvs.size() * sizeof(glm::vec2), &vecData.uvs[0], GL_STATIC_DRAW);
 
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glEnableVertexAttribArray(2);
@@ -106,15 +90,4 @@ void Mesh::setupMesh(Shader shader) {
 		glUniform1i(glGetUniformLocation(shader.ID, "hasTexture"), false);
 	else
 		glUniform1i(glGetUniformLocation(shader.ID, "hasTexture"), true);
-
-
-	// colour buffer
-	if (meshType == MeshType::DAE && !daeData.colour.empty()) {
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[VertexBufferValue::COLOUR]);
-
-		glBufferData(GL_ARRAY_BUFFER, daeData.colour.size() * sizeof(glm::vec4), &daeData.colour[0], GL_STATIC_DRAW);
-
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
-		glEnableVertexAttribArray(3);
-	}
 }

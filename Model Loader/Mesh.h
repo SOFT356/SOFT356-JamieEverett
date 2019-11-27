@@ -26,7 +26,8 @@ enum VertexBufferValue {
 	NUM_VERTEX_BUFFERS
 };
 
-struct ObjData {
+struct VecData {
+	std::string materialName;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
@@ -46,14 +47,6 @@ struct MtlData {
 	std::string map_Kd;								// Diffuse texture map
 };
 
-struct DaeData {
-	std::string materialName;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec3> normals;
-	std::vector<glm::vec4> colour;
-};
-
 struct Texture {
 	unsigned int id;
 	std::string type;
@@ -66,10 +59,8 @@ public:
 
 	std::string path;
 
-	ObjData objData;
+	VecData vecData;
 	MtlData mtlData;
-
-	DaeData daeData;
 
 	std::vector<Texture> textures;
 

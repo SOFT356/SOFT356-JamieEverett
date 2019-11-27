@@ -2,12 +2,12 @@
 
 ///////////////////////////////////////////////////
 // Forward Declarations
-void addMeshToModel(Model& model, std::vector<DaeData> daeVec, std::vector<MtlData> mtlVec, std::string texturePath);
+void addMeshToModel(Model& model, std::vector<VecData> daeVec, std::vector<MtlData> mtlVec, std::string texturePath);
 void splitIntoVector(std::vector<glm::vec2>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec3>& targetVector, std::string values);
 void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values);
 void processDaeData(
-	DaeData& daeData,
+	VecData& vecData,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpPositions,
 	std::vector<glm::vec3> tmpNormals,
@@ -16,7 +16,7 @@ void processDaeData(
 	std::vector<unsigned int> positionIndices,
 	std::vector<unsigned int> normalIndices, 
 	std::vector<unsigned int> colourIndices);
-std::vector<Texture> processTextures(DaeData daeData, std::string path, std::string texturePath);
+std::vector<Texture> processTextures(std::string path, std::string texturePath);
 bool coloursAreDifferent(glm::vec4 colour1, glm::vec4 colour2);
 
 
@@ -36,7 +36,7 @@ void loadDae(Model& model) {
 	std::vector<unsigned int> uvIndices, vertexIndices, normalIndices, colourIndices;
 
 	std::vector<MtlData> mtlVector;
-	std::vector<DaeData> daeVector;
+	std::vector<VecData> daeVector;
 
 	std::string texturePath; // texture location for the dae
 
@@ -48,7 +48,7 @@ void loadDae(Model& model) {
 	bool endOfDaeData = false; // as above, but for a new mesh
 
 	MtlData tempMtlData; // used to store effect data before it gets processed
-	DaeData tempDaeData; // used to store dae data before it gets processed
+	VecData tempDaeData; // used to store dae data before it gets processed
 
 	int npos = std::string::npos;
 
@@ -263,18 +263,18 @@ void loadDae(Model& model) {
 }
 
 
-void addMeshToModel(Model& model, std::vector<DaeData> daeVec, std::vector<MtlData> mtlVec, std::string texturePath) {
+void addMeshToModel(Model& model, std::vector<VecData> daeVector, std::vector<MtlData> mtlVec, std::string texturePath) {
 	// for each dae in daeVec, find its material and add them both to a mesh
-	for (unsigned int vertIndex = 0; vertIndex < daeVec.size(); vertIndex++) {
+	for (unsigned int vertIndex = 0; vertIndex < daeVector.size(); vertIndex++) {
 		for (unsigned int matIndex = 0; matIndex < mtlVec.size(); matIndex++) {
-			if (strcmp(daeVec[vertIndex].materialName.c_str(), mtlVec[matIndex].materialName.c_str()) == 0) {
+			if (strcmp(daeVector[vertIndex].materialName.c_str(), mtlVec[matIndex].materialName.c_str()) == 0) {
 				Mesh tempMesh;
 
 				tempMesh.meshType = MeshType::DAE;
 				tempMesh.path = model.path.substr(0, model.path.find_last_of("\\/"));
-				tempMesh.textures = processTextures(tempMesh.daeData, tempMesh.path, texturePath);
+				tempMesh.textures = processTextures(tempMesh.path, texturePath);
 				
-				tempMesh.daeData = daeVec[vertIndex];
+				tempMesh.vecData = daeVector[vertIndex];
 				tempMesh.mtlData = mtlVec[matIndex];
 
 				tempMesh.setupMesh(model.shader);
@@ -370,7 +370,7 @@ void splitIntoVector(std::vector<glm::vec4>& targetVector, std::string values) {
 }
 
 void processDaeData(
-	DaeData& daeData,
+	VecData& vecData,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec3> tmpNormals,
@@ -382,29 +382,23 @@ void processDaeData(
 {
 	for (int i = 0; i < uvIndices.size(); i++) {
 		unsigned int uvIndex = uvIndices[i];
-		daeData.uvs.push_back(tmpUvs[uvIndex]);
+		vecData.uvs.push_back(tmpUvs[uvIndex]);
 	}
 
 	// process position data
 	for (int i = 0; i < vertexIndices.size(); i++) {
 		unsigned int vertexIndex = vertexIndices[i];
-		daeData.vertices.push_back(tmpVertices[vertexIndex]);
-	}
-
-	// process colour data
-	for (int i = 0; i < colourIndices.size(); i++) {
-		unsigned int colourIndex = colourIndices[i];
-		daeData.colour.push_back(tmpColours[colourIndex]);
+		vecData.vertices.push_back(tmpVertices[vertexIndex]);
 	}
 
 	// process normal data
 	for (int i = 0; i < normalIndices.size(); i++) {
 		unsigned int normalIndex = normalIndices[i];
-		daeData.normals.push_back(tmpNormals[normalIndex]);
+		vecData.normals.push_back(tmpNormals[normalIndex]);
 	}
 }
 
-std::vector<Texture> processTextures(DaeData daeData, std::string path, std::string texturePath) {
+std::vector<Texture> processTextures(std::string path, std::string texturePath) {
 	///////////////////////////////////////////////////////////
 	// Setup Textures (if a texture file exists)
 	std::vector<Texture> textures;

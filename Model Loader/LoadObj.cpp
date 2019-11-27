@@ -18,7 +18,7 @@ void addMeshToCollection(Model& model,
 	std::string path,
 	std::string currMaterialName);
 
-ObjData processObjectData(
+VecData processObjectData(
 	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpNormals,
@@ -176,7 +176,7 @@ void addMeshToCollection(Model& model,
 	Mesh tempMesh;
 	tempMesh.meshType = MeshType::OBJ;
 	tempMesh.path = path.substr(0, path.find_last_of("\\/"));
-	tempMesh.objData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
+	tempMesh.vecData = processObjectData(tmpVertices, tmpUvs, tmpNormals, vertexIndices, uvIndices, normalIndices);
 	tempMesh.mtlData = processMaterialData(path, currMaterialName);
 	tempMesh.textures = processTextures(tempMesh.mtlData, tempMesh.path);
 
@@ -185,7 +185,7 @@ void addMeshToCollection(Model& model,
 }
 
 
-ObjData processObjectData(
+VecData processObjectData(
 	std::vector<glm::vec3> tmpVertices,
 	std::vector<glm::vec2> tmpUvs,
 	std::vector<glm::vec3> tmpNormals,
@@ -195,34 +195,34 @@ ObjData processObjectData(
 {
 	///////////////////////////////////////////////////
 	// Process data
-	ObjData objData;
+	VecData vecData;
 
 	// Process Vertices
 	for (unsigned int i = 0; i < vertexIndices.size(); i++) {
 		unsigned int vertexIndex = vertexIndices[i];
 		glm::vec3 vertex = tmpVertices[vertexIndex - 1];
-		objData.vertices.push_back(vertex);
+		vecData.vertices.push_back(vertex);
 	}
 
 	// Process UVs
 	for (unsigned int i = 0; i < uvIndices.size(); i++) {
 		unsigned int uvIndex = uvIndices[i];
 		glm::vec2 uv = tmpUvs[uvIndex - 1];
-		objData.uvs.push_back(uv);
+		vecData.uvs.push_back(uv);
 	}
 
 	// Process Normals
 	for (unsigned int i = 0; i < normalIndices.size(); i++) {
 		unsigned int normalIndex = normalIndices[i];
 		glm::vec3 normal = tmpNormals[normalIndex - 1];
-		objData.normals.push_back(normal);
+		vecData.normals.push_back(normal);
 	}
 
 	vertexIndices.clear();
 	uvIndices.clear();
 	normalIndices.clear();
 
-	return objData;
+	return vecData;
 }
 
 
