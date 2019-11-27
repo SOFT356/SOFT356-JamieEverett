@@ -89,7 +89,7 @@ Most of this function is repeatedly called until <i>Escape</i> is pressed (which
 
 <br>
 Below is a high-level flow diagram of the program execution logic:
-<br>
+<br><br>
 
 <p align="center">
     <img src="doc/SOFT356-LogicFlowDiagram.png" title="Logic Flow Diagram" alt="Logic Flow Diagram">
@@ -107,7 +107,7 @@ I have added some extra features to generally improve the loader, such as corrup
 
 <br>
 <p align="center">
-    <img src="doc/CorruptFileDetection.png" title="Logic Flow Diagram" alt="Logic Flow Diagram">
+    <img src="doc/CorruptFileDetection.png" title="Corrupt File Detection" alt="Corrupt File Detection">
 </p>
 
 <br>
