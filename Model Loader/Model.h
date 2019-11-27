@@ -14,7 +14,7 @@ public:
 
 	Model();
 
-	void draw(Shader shader);
+	void draw();
 };
 
 #endif

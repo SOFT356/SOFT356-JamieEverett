@@ -5,28 +5,13 @@ Mesh::Mesh() {
 
 }
 
-Mesh::Mesh(MeshType meshType, std::string path, ObjData objData, MtlData mtlData, DaeData daeData, std::vector<Texture> textures) {
-	this->meshType = meshType;
-	this->path = path;
-	this->objData = objData;
-	this->mtlData = mtlData;
-	this->daeData = daeData;
-	this->textures = textures;
-
-	setupMesh();
-}
-
 void Mesh::draw(Shader shader) {
 	unsigned int diffueNr	= 1;
 	unsigned int specularNr = 1;
 	unsigned int normalNr	= 1;
-	unsigned int heightNr	= 1;
+	unsigned int heightNr	= 1;	
 
-	if (textures.empty())	
-		glUniform1i(glGetUniformLocation(shader.ID, "hasTexture"), false);
-	else 
-		glUniform1i(glGetUniformLocation(shader.ID, "hasTexture"), true);
-	
+	shader.use();
 
 	for (unsigned int i = 0; i < textures.size(); i++)	{
 		glActiveTexture(GL_TEXTURE0 + i);
@@ -70,7 +55,7 @@ void Mesh::draw(Shader shader) {
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void Mesh::setupMesh() {
+void Mesh::setupMesh(Shader shader) {
 	///////////////////////////////////////////////////////////
 	// Setup Buffers
 	glGenVertexArrays(1, &VAO);
@@ -114,6 +99,13 @@ void Mesh::setupMesh() {
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glEnableVertexAttribArray(2);
 	}
+
+	shader.use();
+
+	if (textures.empty())
+		glUniform1i(glGetUniformLocation(shader.ID, "hasTexture"), false);
+	else
+		glUniform1i(glGetUniformLocation(shader.ID, "hasTexture"), true);
 
 
 	// colour buffer

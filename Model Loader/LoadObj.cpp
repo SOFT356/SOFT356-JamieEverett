@@ -31,7 +31,7 @@ MtlData processMaterialData(std::string path, std::string currMaterialName);
 std::vector<Texture> processTextures(MtlData mtlData, std::string path);
 
 
-void loadObj(Model& model) // Model.obj filepath
+void loadObj(Model& model)
 {
 	std::vector<glm::vec3> tmpVertices;
 	std::vector<glm::vec2> tmpUvs;
@@ -180,7 +180,7 @@ void addMeshToCollection(Model& model,
 	tempMesh.mtlData = processMaterialData(path, currMaterialName);
 	tempMesh.textures = processTextures(tempMesh.mtlData, tempMesh.path);
 
-	tempMesh.setupMesh();
+	tempMesh.setupMesh(model.shader);
 	model.meshes.push_back(tempMesh);	
 }
 

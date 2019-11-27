@@ -178,6 +178,10 @@ bool loadModels(std::vector<std::string>& modelPaths, std::vector<Model>& models
 
 		Model model;
 
+		// Build ,compile and equip shaders
+		Shader shaders("shaders/shader.vs", "shaders/shader.fs");
+		model.shader = shaders;
+
 		if (fileExtension[0] == ".obj") {
 			model.path = modelPaths[i];
 			loadObj(model);
@@ -218,9 +222,6 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	
 	glEnable(GL_DEPTH_TEST);
-
-	// Build and compile Shader program
-	Shader shaders("shaders/shader.vs", "shaders/shader.fs");
 	
 	while (!glfwWindowShouldClose(window))
 	{
@@ -228,9 +229,6 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 		float currFrame = (float)glfwGetTime();
 		deltaTime = currFrame - lastFrame;
 		lastFrame = currFrame;
-
-		// Check inputs
-		processInput(window, models, scaleFactor);
 
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -256,14 +254,16 @@ void display(GLFWwindow* window, std::vector<Model> models) {
 			projection = glm::perspective(glm::radians((float)fov), (float)(SCR_WIDTH/SCR_HEIGHT), 0.1f, 250.0f);
 
 			// Select shaders
-			shaders.use();
-			setUniformMatrix(shaders, modelTrans, "model");
-			setUniformMatrix(shaders, view, "view");
-			setUniformMatrix(shaders, projection, "projection");
+			setUniformMatrix(models[i].shader, modelTrans, "model");
+			setUniformMatrix(models[i].shader, view, "view");
+			setUniformMatrix(models[i].shader, projection, "projection");
 		
 			// Draw the models
-			models[i].draw(shaders);
+			models[i].draw();
 		}		
+		
+		// Check inputs
+		processInput(window, models, scaleFactor);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -315,6 +315,16 @@ void processInput(GLFWwindow* window, std::vector<Model>& models, float& scaleFa
 		wireframe ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		awaitingRelease = true;
 	}
+	if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS && !awaitingRelease) {
+		GLint hasTexture;
+
+		for (unsigned int i = 0; i < models.size(); i++) {
+			models[i].shader.use();
+			glGetUniformiv(models[i].shader.ID, glGetUniformLocation(models[i].shader.ID, "hasTexture"), &hasTexture);
+			hasTexture ? glUniform1i(glGetUniformLocation(models[i].shader.ID, "hasTexture"), false) : glUniform1i(glGetUniformLocation(models[i].shader.ID, "hasTexture"), true);
+		}
+		awaitingRelease = true;
+	}
 	if (glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS && !awaitingRelease) {
 		if (models.size() > 0)
 			models.pop_back();
@@ -327,6 +337,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (GLFW_KEY_1 && action == GLFW_RELEASE)
 		awaitingRelease = false;
 	if (GLFW_KEY_2 && action == GLFW_RELEASE)
+		awaitingRelease = false;
+	if (GLFW_KEY_3 && action == GLFW_RELEASE)
 		awaitingRelease = false;
 	if (GLFW_KEY_BACKSPACE && action == GLFW_RELEASE)
 		awaitingRelease = false;

@@ -277,7 +277,7 @@ void addMeshToModel(Model& model, std::vector<DaeData> daeVec, std::vector<MtlDa
 				tempMesh.daeData = daeVec[vertIndex];
 				tempMesh.mtlData = mtlVec[matIndex];
 
-				tempMesh.setupMesh();
+				tempMesh.setupMesh(model.shader);
 				model.meshes.push_back(tempMesh);
 			}
 		}

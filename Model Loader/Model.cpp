@@ -4,7 +4,7 @@
 Model::Model() {
 }
 
-void Model::draw(Shader shader) {
+void Model::draw() {
 	for (unsigned int i = 0; i < meshes.size(); i++) {
 		meshes[i].draw(shader);
 	}

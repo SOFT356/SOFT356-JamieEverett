@@ -74,15 +74,9 @@ public:
 	std::vector<Texture> textures;
 
 	Mesh();
-	Mesh(MeshType meshType,
-		std::string path,
-		ObjData objData,
-		MtlData mtlData,
-		DaeData daeData,
-		std::vector<Texture> textures);
 
 	void draw(Shader shader);
-	void setupMesh();
+	void setupMesh(Shader shader);
 private:
 	unsigned int VAO = NULL;
 
