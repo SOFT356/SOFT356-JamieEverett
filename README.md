@@ -68,10 +68,48 @@ The model loader comes with the following controls to provide a satisfying user 
 
 ### Code Structure
 
-<!-- How does your code fit together and how should a programmer navigate it (not intended to be an exercise in formally documenting program code) -->
+The code is made up of 6 main cpp files, the main one being <i>ModelLoader.cpp</i>. From this file, the model paths are acquired from <i>getModelPaths(vector\<string\> modelPaths)</i>, passed to the <i>loadModels(vector\<string\> modelPaths, vector\<Model\> models)</i> function and then displayed through <i>display(GLFWwindow\* window, vector\<Model\> models)</i>.
 
-<!-- Anything else which will help us to understand how your prototype works. -->
+<i>getModelPaths(vector\<string\> modelPaths)</i>
+<br>
+Repeatedly asks the user for how many models they wish to load and their respective paths. The function is called again if an error is hit, such as the input for number of models is invalid or a model path cannot be opened.
+
+<i>loadModels(vector\<string\> modelPaths, vector\<Model\> models)</i>
+<br>
+Loops over each model path in <i>modelPaths</i> and calls the the model load function for the required filetype. The model load function will then parse the model file data and return a <i>Model</i> object. If a model cannot be loaded, the program exits with an error message and <i>exit(EXIT_FAILURE)</i>.
+<br>
+Each model is also assigned a shader object in this method.
+
+<i>display(GLFWwindow\* window, vector\<Model\> models)</i>
+<br>
+Loops over each model in <i>models</i> and calls <i>models[i].draw()</i>.
+It is also responsible for linking callbacks, handling frame timing (refresh rate), processing inputs (e.g. camera movement) and updating shader uniform values.
+<br>
+Most of this function is repeatedly called until <i>Escape</i> is pressed (which sets <i>glfwWindowShouldClose</i> to <i>true</i>).
+
+<br>
+Below is a high-level flow diagram of the program execution logic:
+
+<p align="center">
+    <img src="doc/SOFT356-LogicFlowDiagram.png" title="Logic Flow Diagram" alt="Logic Flow Diagram">
+</p>
+
+<br>
+Each <i>Model</i> object is constructed of one or more (potentially many) <i>Mesh</i> objects. The <i>Mesh</i> objects contain both vertex data for position, texture coordinates (UVs) and normals as well as material data such as ambient, diffuse and specular colour. When <i>model.draw()</i> is called, each <i>Mesh</i> is looped over and <i>mesh.draw()</i> called (which is where <i>glDrawArrays()</i> can be found).
+
+The <i>Shader.cpp</i> class constructs a <i>Shader</i> object from a vertex and fragment shader filepath. The shader files are compiled and then a shader program is created. The class also contains some useful utility functions, such as quickly equipping shader programs.
+
+### Optimisations and Improvements
+
+I have added some extra features to generally improve the loader, such as corrupt file detection.
+
+<!-- corrupt file detection -->
+<!-- using headers to prevent recompilation of code -->
 
 ### Future Improvements
 
 <!-- what I'd like to add, what would've done -->
+
+<!-- Include what would've been done (adding custom file type) and  why it would be better over current options (hard to parse XML, etc.). Add support for loading folders.
+
+As C2 will build on this, may add to C2 going forward. -->
