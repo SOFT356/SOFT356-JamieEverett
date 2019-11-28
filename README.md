@@ -38,8 +38,6 @@ The model loader comes with the following controls to provide a satisfying user 
 | Left Control   | Camera down                  |
 | Page Up        | Scale models up              |
 | Page Down      | Scale models down            |
-| 1              | Toggle wireframe mode        |
-| 3              | Swap model textures          |
 
 <br>
 <b>Model Controls:</b>
@@ -47,6 +45,8 @@ The model loader comes with the following controls to provide a satisfying user 
 | Input     | Action                               |
 | --------- | ------------------------------------ |
 | Backspace | Remove the last model that was added |
+| 1         | Toggle wireframe mode                |
+| 3         | Swap model textures                  |
 
 <br>
 <b>Window Controls:</b>
