@@ -26,36 +26,37 @@ The model loader comes with the following controls to provide a satisfying user 
 
 <b>Camera Controls:</b>
 
-<ul>
-    <b>Mouse:</b>
-    <li>Mouse Movement : Pitch & Yaw</li>
-    <li>Mouse Scroll : Increase/Decrease Zoom</li>
-    <br>
-    <b>Keyboard:</b>
-    <li>W : Camera Forward</li>
-    <li>A : Camera Left</li>
-    <li>S : Camera Back</li>
-    <li>D : Camera Right</li>
-    <li>Left Shift : Camera Up</li>
-    <li>Left Control : Camera Down</li>
-    <li>Page Up : Scale Models Up</li>
-    <li>Page Down : Scale Models Down</li>
-    <li>1 : Toggle wireframe mode</li>
-    <li>3 : Swap model textures</li>
-</ul>
+| Input          | Action                       |
+| -------------- | ---------------------------- |
+| Mouse Movement | Pitch & Yaw                  |
+| Mouse Scroll   | Increase/Decrease zoom (FOV) |
+| W              | Camera forward               |
+| A              | Camera left                  |
+| S              | Camera back                  |
+| D              | Camera right                 |
+| Left Shift     | Camera up                    |
+| Left Control   | Camera down                  |
+| Page Up        | Scale models up              |
+| Page Down      | Scale models down            |
+| 1              | Toggle wireframe mode        |
+| 3              | Swap model textures          |
 
+<br>
 <b>Model Controls:</b>
 
-<ul>
-    <li>Backspace : Remove the last model that was added</li>
-</ul>
+| Input     | Action                               |
+| --------- | ------------------------------------ |
+| Backspace | Remove the last model that was added |
 
+<br>
 <b>Window Controls:</b>
 
-<ul>
-    <li>Escape : Close the program</li>
-    <li>2 : Toggle viewport mouse capturing</li>
-</ul>
+| Input  | Action                          |
+| ------ | ------------------------------- |
+| Escape | Close the program               |
+| 2      | Toggle viewport mouse capturing |
+
+<br>
 
 ### Loading Models
 
